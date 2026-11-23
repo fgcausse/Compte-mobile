@@ -213,8 +213,10 @@
 
         .fixed-row {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 12px 10px 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; gap: 6px;
+            padding: 10px 10px 10px 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; gap: 6px;
+            cursor: pointer;
         }
+        .fixed-row:active { background: #fffaf5; }
         .fixed-row:last-child { border-bottom: none; }
         .fixed-row.checked { opacity: 0.55; background: #f8fafc; }
         .fixed-row.checked .f-name { text-decoration: line-through; }
@@ -224,8 +226,8 @@
             padding: 2px 6px; border-radius: 6px; flex-shrink: 0;
         }
         .f-name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .f-right { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-        .f-amt { font-weight: 900; white-space: nowrap; }
+        .f-right { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+        .f-amt { font-weight: 900; white-space: nowrap; margin-right: 4px; }
 
         /* 3. TABLEAU DES DÉPENSES EN FIN DE PAGE */
         .table-card {
@@ -453,7 +455,7 @@
         <div class="section-title"><span>Budget par semaine</span></div>
         <div id="weeksList"></div>
 
-        <!-- 2. SOMMES ENTRÉES ET SORTIES -->
+        <!-- 2. SOMMES ENTRÉES ET SORTIES (AJOUT, MODIFICATION & SUPPRESSION) -->
         <div class="section-title"><span>Entrées & Charges fixes</span></div>
         
         <details class="fixed-panel" id="panelInMobile">
@@ -514,7 +516,7 @@
         </div>
     </div>
 
-    <!-- MODALE AJOUT ENTRÉE OU CHARGE FIXE -->
+    <!-- MODALE AJOUT / MODIFICATION ENTRÉE OU CHARGE FIXE -->
     <div class="modal-overlay" id="fixedModal" onclick="if(event.target===this) closeFixedModal()">
         <div class="modal-sheet">
             <div class="modal-header" id="fixedModalHeader">
@@ -744,6 +746,7 @@
         let currentAmountStr = "";
         let editingExpenseId = null;
         let currentFixedType = "out";
+        let editingFixedIdx = null;
         let saveTimeout = null;
 
         /* POPUP DÉBUT DU MOIS */
@@ -939,9 +942,10 @@
             }
         }
 
-        /* GESTION AJOUT / SUPPRESSION ENTRÉES & CHARGES FIXES */
+        /* GESTION AJOUT / MODIFICATION / SUPPRESSION ENTRÉES & CHARGES FIXES */
         function openFixedModal(type) {
             currentFixedType = type;
+            editingFixedIdx = null;
             const header = document.getElementById("fixedModalHeader");
             const title = document.getElementById("fixedModalTitle");
             const label = document.getElementById("fNameLabel");
@@ -968,7 +972,37 @@
             document.getElementById("fixedModal").classList.add("open");
         }
 
+        function editFixedItem(type, idx) {
+            const item = state[type][idx];
+            if (!item) return;
+
+            currentFixedType = type;
+            editingFixedIdx = idx;
+            const header = document.getElementById("fixedModalHeader");
+            const title = document.getElementById("fixedModalTitle");
+            const label = document.getElementById("fNameLabel");
+            const btn = document.getElementById("fixedSubmitBtn");
+
+            if (type === "in") {
+                header.className = "modal-header bg-green-grad";
+                title.innerHTML = `<i class="fas fa-pen"></i><span>Modifier l'entrée</span>`;
+                label.innerText = "Source / Employeur";
+                btn.className = "btn-modal btn-submit-green";
+            } else {
+                header.className = "modal-header bg-red-grad";
+                title.innerHTML = `<i class="fas fa-pen"></i><span>Modifier la charge fixe</span>`;
+                label.innerText = "Description de la charge";
+                btn.className = "btn-modal btn-submit-red";
+            }
+
+            document.getElementById("fDay").value = item.jour || (type === "in" ? (state.startDay || 25) : 5);
+            document.getElementById("fName").value = item.nom || "";
+            document.getElementById("fAmount").value = Number(item.montant) || "";
+            document.getElementById("fixedModal").classList.add("open");
+        }
+
         function closeFixedModal() {
+            editingFixedIdx = null;
             document.getElementById("fixedModal").classList.remove("open");
         }
 
@@ -987,12 +1021,21 @@
                 return;
             }
 
-            state[currentFixedType].push({
-                id: genId(currentFixedType),
-                jour: jour,
-                nom: nom,
-                montant: montant
-            });
+            if (editingFixedIdx !== null && state[currentFixedType][editingFixedIdx]) {
+                state[currentFixedType][editingFixedIdx] = {
+                    ...state[currentFixedType][editingFixedIdx],
+                    jour: jour,
+                    nom: nom,
+                    montant: montant
+                };
+            } else {
+                state[currentFixedType].push({
+                    id: genId(currentFixedType),
+                    jour: jour,
+                    nom: nom,
+                    montant: montant
+                });
+            }
 
             const panel = document.getElementById(currentFixedType === "in" ? "panelInMobile" : "panelOutMobile");
             if (panel) panel.open = true;
@@ -1210,15 +1253,18 @@
             const buildFixedRow = (item, idx, type) => {
                 const isChecked = monthPointage.includes(item.id);
                 return `
-                <div class="fixed-row ${isChecked ? 'checked' : ''}">
+                <div class="fixed-row ${isChecked ? 'checked' : ''}" onclick="editFixedItem('${type}', ${idx})">
                     <div class="f-left">
                         <span class="f-day">J${item.jour}</span>
                         <span class="f-name">${item.nom || 'Sans nom'}</span>
                     </div>
-                    <div class="f-right">
-                        <span class="f-amt ${type === 'in' ? 'text-green' : 'text-red'}">
+                    <div class="f-right" onclick="event.stopPropagation();">
+                        <span class="f-amt ${type === 'in' ? 'text-green' : 'text-red'}" onclick="editFixedItem('${type}', ${idx})">
                             ${type === 'in' ? '+' : '-'}${fmt(item.montant)}
                         </span>
+                        <button type="button" class="btn-edit-exp" onclick="editFixedItem('${type}', ${idx})" title="Modifier">
+                            <i class="fas fa-pen"></i>
+                        </button>
                         <button type="button" class="btn-del-exp" onclick="deleteFixedItem('${type}', ${idx})" title="Supprimer">
                             <i class="fas fa-trash-alt"></i>
                         </button>
