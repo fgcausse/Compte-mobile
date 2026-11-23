@@ -234,22 +234,32 @@
         }
         .table-expenses { width: 100%; border-collapse: collapse; }
         .table-expenses th {
-            text-align: left; padding: 10px 10px; background: #f8fafc;
+            text-align: left; padding: 10px 8px; background: #f8fafc;
             font-size: 10px; text-transform: uppercase; color: var(--text-muted);
             border-bottom: 1px solid var(--border); font-weight: 800;
         }
         .table-expenses td {
-            padding: 11px 10px; font-size: 13px; border-bottom: 1px solid #f1f5f9;
+            padding: 11px 8px; font-size: 13px; border-bottom: 1px solid #f1f5f9;
             font-weight: 700; vertical-align: middle;
         }
         .table-expenses tr:last-child td { border-bottom: none; }
+        .exp-row-clickable { cursor: pointer; }
+        .exp-row-clickable:active { background: #fffaf5; }
         .exp-cat-tag {
             display: inline-block; font-size: 10px; font-weight: 800; color: var(--blue-dark);
             background: #eff6ff; padding: 2px 6px; border-radius: 5px; margin-top: 3px;
         }
+        .exp-actions-cell {
+            display: flex; align-items: center; justify-content: flex-end; gap: 2px;
+        }
+        .btn-edit-exp {
+            background: none; border: none; color: #64748b; cursor: pointer;
+            font-size: 13px; padding: 6px 6px; border-radius: 8px;
+        }
+        .btn-edit-exp:active { color: var(--blue-dark); background: #eff6ff; }
         .btn-del-exp {
             background: none; border: none; color: #94a3b8; cursor: pointer;
-            font-size: 14px; padding: 6px 7px; border-radius: 8px;
+            font-size: 14px; padding: 6px 6px; border-radius: 8px;
         }
         .btn-del-exp:active { color: var(--red); background: #fef2f2; }
 
@@ -443,7 +453,7 @@
         <div class="section-title"><span>Budget par semaine</span></div>
         <div id="weeksList"></div>
 
-        <!-- 2. SOMMES ENTRÉES ET SORTIES (BOUTON + DÉCALÉ DE LA FLÈCHE) -->
+        <!-- 2. SOMMES ENTRÉES ET SORTIES -->
         <div class="section-title"><span>Entrées & Charges fixes</span></div>
         
         <details class="fixed-panel" id="panelInMobile">
@@ -468,7 +478,7 @@
             <div id="listOutMobile"></div>
         </details>
 
-        <!-- 3. TABLEAU DES DÉPENSES EN FIN DE PAGE -->
+        <!-- 3. TABLEAU DES DÉPENSES EN FIN DE PAGE (MODIFICATION & SUPPRESSION) -->
         <div class="section-title">
             <span>Dépenses du cycle</span>
             <span id="expCount" style="color: var(--primary);">0</span>
@@ -477,10 +487,10 @@
             <table class="table-expenses">
                 <thead>
                     <tr>
-                        <th style="width: 52px;">Date</th>
+                        <th style="width: 48px;">Date</th>
                         <th>Dépense & Catégorie</th>
                         <th style="text-align: right;">Montant</th>
-                        <th style="width: 36px;"></th>
+                        <th style="width: 62px; text-align: right;"></th>
                     </tr>
                 </thead>
                 <tbody id="tableExpenses"></tbody>
@@ -566,11 +576,11 @@
         </div>
     </div>
 
-    <!-- MODALE AJOUT DÉPENSE -->
+    <!-- MODALE AJOUT / MODIFICATION DÉPENSE -->
     <div class="modal-overlay" id="modal" onclick="if(event.target===this) closeModal()">
         <div class="modal-sheet">
             <div class="modal-header">
-                <div class="modal-header-title"><i class="fas fa-cart-plus"></i><span>Nouvelle dépense</span></div>
+                <div class="modal-header-title" id="expenseModalTitle"><i class="fas fa-cart-plus"></i><span>Nouvelle dépense</span></div>
                 <button type="button" class="close-btn" onclick="closeModal()">&times;</button>
             </div>
             <form onsubmit="event.preventDefault(); saveExpense();">
@@ -608,7 +618,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-modal btn-cancel" onclick="closeModal()">Annuler</button>
-                    <button type="submit" class="btn-modal btn-submit"><i class="fas fa-check"></i> Valider</button>
+                    <button type="submit" class="btn-modal btn-submit" id="expenseSubmitBtn"><i class="fas fa-check"></i> Valider</button>
                 </div>
             </form>
         </div>
@@ -732,6 +742,7 @@
         };
 
         let currentAmountStr = "";
+        let editingExpenseId = null;
         let currentFixedType = "out";
         let saveTimeout = null;
 
@@ -1002,7 +1013,7 @@
             }
         }
 
-        /* PAVÉ NUMÉRIQUE & MODALE DÉPENSE */
+        /* PAVÉ NUMÉRIQUE & MODALE DÉPENSE (AJOUT + MODIFICATION) */
         function addNum(val) {
             if (val === '.' && currentAmountStr.includes('.')) return;
             if (currentAmountStr.includes('.') && currentAmountStr.split('.')[1].length >= 2) return;
@@ -1017,7 +1028,10 @@
         }
 
         function openModal() {
+            editingExpenseId = null;
             currentAmountStr = "";
+            document.getElementById("expenseModalTitle").innerHTML = `<i class="fas fa-cart-plus"></i><span>Nouvelle dépense</span>`;
+            document.getElementById("expenseSubmitBtn").innerHTML = `<i class="fas fa-check"></i> Valider`;
             document.getElementById("mAmount").value = "";
             document.getElementById("mDesc").value = "";
             document.getElementById("mCat").value = "";
@@ -1025,7 +1039,23 @@
             document.getElementById("modal").classList.add("open");
         }
 
+        function editExpense(id) {
+            const exp = state.expenses.find(e => String(e.id) === String(id));
+            if (!exp) return;
+
+            editingExpenseId = String(exp.id);
+            currentAmountStr = String(Number(exp.amount));
+            document.getElementById("expenseModalTitle").innerHTML = `<i class="fas fa-pen"></i><span>Modifier la dépense</span>`;
+            document.getElementById("expenseSubmitBtn").innerHTML = `<i class="fas fa-check"></i> Enregistrer`;
+            document.getElementById("mDate").value = exp.exactDate || getToday();
+            document.getElementById("mCat").value = categories.includes(exp.cat) ? exp.cat : "AUTRE";
+            document.getElementById("mDesc").value = exp.desc || "";
+            document.getElementById("mAmount").value = currentAmountStr;
+            document.getElementById("modal").classList.add("open");
+        }
+
         function closeModal() {
+            editingExpenseId = null;
             document.getElementById("modal").classList.remove("open");
         }
 
@@ -1038,16 +1068,32 @@
 
             const dateVal = document.getElementById("mDate").value;
             const targetCycleMonth = getCycleMonthForDate(dateVal, state.startDay);
+            const catVal = document.getElementById("mCat").value;
+            const descVal = document.getElementById("mDesc").value.trim();
 
-            state.expenses.unshift({
-                id: "man_" + Date.now(),
-                dateStr: targetCycleMonth,
-                exactDate: dateVal,
-                cat: document.getElementById("mCat").value,
-                desc: document.getElementById("mDesc").value,
-                amount: amt,
-                fromApplePay: false
-            });
+            if (editingExpenseId) {
+                const idx = state.expenses.findIndex(e => String(e.id) === editingExpenseId);
+                if (idx !== -1) {
+                    state.expenses[idx] = {
+                        ...state.expenses[idx],
+                        dateStr: targetCycleMonth,
+                        exactDate: dateVal,
+                        cat: catVal,
+                        desc: descVal,
+                        amount: amt
+                    };
+                }
+            } else {
+                state.expenses.unshift({
+                    id: "man_" + Date.now(),
+                    dateStr: targetCycleMonth,
+                    exactDate: dateVal,
+                    cat: catVal,
+                    desc: descVal,
+                    amount: amt,
+                    fromApplePay: false
+                });
+            }
 
             state.expenses.sort((a, b) => (b.exactDate || "").localeCompare(a.exactDate || ""));
 
@@ -1196,17 +1242,22 @@
                     const dAff = e.exactDate ? e.exactDate.split('-').reverse().slice(0,2).join('/') : '';
                     const apple = e.fromApplePay ? `<i class="fab fa-apple" style="color:#475569; margin-right:3px;"></i>` : '';
                     return `
-                    <tr>
+                    <tr class="exp-row-clickable" onclick="editExpense('${e.id}')">
                         <td style="color: var(--text-muted); font-size: 12px;">${dAff}</td>
                         <td>
                             <div>${apple}${e.desc}</div>
                             <span class="exp-cat-tag">${e.cat}</span>
                         </td>
                         <td class="text-red" style="text-align: right; font-weight: 900; white-space: nowrap;">-${fmt(e.amount)}</td>
-                        <td style="text-align: center;">
-                            <button type="button" class="btn-del-exp" onclick="deleteExpense('${e.id}')" title="Supprimer">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
+                        <td style="text-align: right;" onclick="event.stopPropagation();">
+                            <div class="exp-actions-cell">
+                                <button type="button" class="btn-edit-exp" onclick="editExpense('${e.id}')" title="Modifier">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button type="button" class="btn-del-exp" onclick="deleteExpense('${e.id}')" title="Supprimer">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>`;
                 }).join("");
