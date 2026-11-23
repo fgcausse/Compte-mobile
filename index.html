@@ -673,4 +673,247 @@
 
                 const response = await fetch(acc.url, {
                     method: "POST",
-                    headers: { "Content-Type": "text/plain;charset=utf-
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify(payload)
+                });
+
+                const resJson = await response.json();
+                if (resJson.status === "success") {
+                    setCloudStatus("ok", "Enregistré");
+                } else {
+                    throw new Error(resJson.message || "Erreur serveur");
+                }
+            } catch (err) {
+                console.error("Erreur sauvegarde Google Sheets :", err);
+                setCloudStatus("err", "Erreur sync");
+            }
+        }
+
+        /* PAVÉ NUMÉRIQUE & MODALE */
+        function addNum(val) {
+            if (val === '.' && currentAmountStr.includes('.')) return;
+            if (currentAmountStr.includes('.') && currentAmountStr.split('.')[1].length >= 2) return;
+            if (currentAmountStr === "0" && val !== ".") currentAmountStr = val;
+            else currentAmountStr += val;
+            document.getElementById("mAmount").value = currentAmountStr;
+        }
+
+        function delNum() {
+            currentAmountStr = currentAmountStr.slice(0, -1);
+            document.getElementById("mAmount").value = currentAmountStr;
+        }
+
+        function openModal() {
+            currentAmountStr = "";
+            document.getElementById("mAmount").value = "";
+            document.getElementById("mDesc").value = "";
+            document.getElementById("mCat").value = "";
+            document.getElementById("mDate").value = getToday();
+            document.getElementById("modal").classList.add("open");
+        }
+
+        function closeModal() {
+            document.getElementById("modal").classList.remove("open");
+        }
+
+        function saveExpense() {
+            const amt = Number(currentAmountStr);
+            if (isNaN(amt) || amt <= 0) {
+                alert("Le montant doit être supérieur à 0.");
+                return;
+            }
+
+            const dateVal = document.getElementById("mDate").value;
+            const targetCycleMonth = getCycleMonthForDate(dateVal, state.startDay);
+
+            state.expenses.unshift({
+                id: "man_" + Date.now(),
+                dateStr: targetCycleMonth,
+                exactDate: dateVal,
+                cat: document.getElementById("mCat").value,
+                desc: document.getElementById("mDesc").value,
+                amount: amt,
+                fromApplePay: false
+            });
+
+            state.expenses.sort((a, b) => (b.exactDate || "").localeCompare(a.exactDate || ""));
+
+            if (state.currentDate !== targetCycleMonth) {
+                state.currentDate = targetCycleMonth;
+                document.getElementById("datePicker").value = targetCycleMonth;
+            }
+
+            saveData();
+            closeModal();
+            renderAll();
+        }
+
+        function deleteExpense(id) {
+            if (confirm("Supprimer cette dépense ?")) {
+                state.expenses = state.expenses.filter(e => String(e.id) !== String(id));
+                saveData();
+                renderAll();
+            }
+        }
+
+        /* CALCULS DE CYCLES & DATES */
+        function clampDay(y, m, d) {
+            let max = new Date(y, m + 1, 0).getDate();
+            return d > max ? max : d;
+        }
+
+        function generateCycleDates(monthStr, startDay) {
+            let [y, m] = monthStr.split('-').map(Number);
+            let d1 = new Date(y, m - 2, clampDay(y, m - 2, startDay));
+            let d2 = new Date(y, m - 1, clampDay(y, m - 1, startDay));
+            let dates = [];
+            let curr = new Date(d1);
+            while (curr < d2) {
+                dates.push(new Date(curr));
+                curr.setDate(curr.getDate() + 1);
+            }
+            return dates;
+        }
+
+        function generateWeeksFromCycle(datesArray) {
+            let weeks = [];
+            for (let i = 0; i < 5; i++) {
+                let chunk = datesArray.slice(i * 7, (i + 1) * 7);
+                if (chunk.length === 0) break;
+                let s = String(chunk[0].getDate()).padStart(2, '0');
+                let e = String(chunk[chunk.length - 1].getDate()).padStart(2, '0');
+                weeks.push({
+                    label: `S${i+1} • Du ${s} au ${e}`,
+                    days: chunk.length,
+                    datesStr: chunk.map(d => formatDateExact(d))
+                });
+            }
+            return weeks;
+        }
+
+        function formatDateExact(d) {
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+
+        function getCycleMonthForDate(dateStr, startDay) {
+            let d = new Date(dateStr);
+            let y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate();
+            let maxD = new Date(y, m, 0).getDate();
+            if (day >= (startDay > maxD ? maxD : startDay)) {
+                m += 1; if (m > 12) { m = 1; y += 1; }
+            }
+            return `${y}-${String(m).padStart(2, '0')}`;
+        }
+
+        function getToday() { return formatDateExact(new Date()); }
+        const fmt = (num) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(num || 0);
+
+        function renderAll() {
+            let totIn = state.in.reduce((s, i) => s + Number(i.montant), 0);
+            let totOut = state.out.reduce((s, i) => s + Number(i.montant), 0);
+            let budget = totIn - totOut;
+
+            document.getElementById("kpiIn").innerText = fmt(totIn);
+            document.getElementById("kpiOut").innerText = "-" + fmt(totOut);
+            document.getElementById("kpiBudget").innerText = fmt(budget);
+            document.getElementById("totIn").innerText = fmt(totIn);
+            document.getElementById("totOut").innerText = "-" + fmt(totOut);
+
+            let cycleDates = generateCycleDates(state.currentDate, state.startDay);
+            let dynamicWeeks = generateWeeksFromCycle(cycleDates);
+            let budgetPerDay = budget / cycleDates.length;
+            let currentExpenses = state.expenses.filter(e => e.dateStr === state.currentDate);
+            const todayStr = getToday();
+
+            let hWeeks = "";
+            let remainingMois = 0;
+            dynamicWeeks.forEach(w => {
+                let dispo = budgetPerDay * w.days;
+                let spent = currentExpenses.filter(e => w.datesStr.includes(e.exactDate)).reduce((s, e) => s + e.amount, 0);
+                let reste = dispo - spent;
+                remainingMois += reste;
+                const isNow = w.datesStr.includes(todayStr);
+
+                hWeeks += `
+                <div class="week-card ${reste < 0 ? 'neg' : ''} ${isNow ? 'active-week' : ''}">
+                    ${isNow ? '<span class="badge-now">En cours</span>' : ''}
+                    <div>
+                        <div class="w-title">${w.label}</div>
+                        <div class="w-sub">Budget ${fmt(dispo)} • Dépensé ${fmt(spent)}</div>
+                    </div>
+                    <div class="w-reste ${reste < 0 ? 'text-red' : 'text-green'}">${reste > 0 ? '+' : ''}${fmt(reste)}</div>
+                </div>`;
+            });
+            document.getElementById("weeksList").innerHTML = hWeeks;
+
+            const kpiFinal = document.getElementById("kpiFinal");
+            kpiFinal.innerText = fmt(remainingMois);
+            kpiFinal.className = "kpi-val " + (remainingMois < 0 ? "val-red" : "val-green");
+
+            const monthPointage = state.pointage[state.currentDate] || [];
+            const buildFixedRow = (item, type) => {
+                const isChecked = monthPointage.includes(item.id);
+                return `
+                <div class="fixed-row ${isChecked ? 'checked' : ''}">
+                    <div class="f-left">
+                        <span class="f-day">J${item.jour}</span>
+                        <span class="f-name">${item.nom || 'Sans nom'}</span>
+                    </div>
+                    <span class="f-amt ${type === 'in' ? 'text-green' : 'text-red'}">
+                        ${type === 'in' ? '+' : '-'}${fmt(item.montant)}
+                    </span>
+                </div>`;
+            };
+            document.getElementById("listInMobile").innerHTML = state.in.map(x => buildFixedRow(x, 'in')).join("");
+            document.getElementById("listOutMobile").innerHTML = state.out.map(x => buildFixedRow(x, 'out')).join("");
+
+            document.getElementById("expCount").innerText = currentExpenses.length + " opération(s)";
+            if (currentExpenses.length === 0) {
+                document.getElementById("tableExpenses").innerHTML = `<tr><td colspan="4" style="text-align:center; padding:32px; color:var(--text-muted);">Aucune dépense sur ce cycle.</td></tr>`;
+            } else {
+                document.getElementById("tableExpenses").innerHTML = currentExpenses.map(e => {
+                    const dAff = e.exactDate ? e.exactDate.split('-').reverse().slice(0,2).join('/') : '';
+                    const apple = e.fromApplePay ? `<i class="fab fa-apple" style="color:#475569; margin-right:3px;"></i>` : '';
+                    return `
+                    <tr>
+                        <td style="color: var(--text-muted); font-size: 12px;">${dAff}</td>
+                        <td>
+                            <div>${apple}${e.desc}</div>
+                            <span class="exp-cat-tag">${e.cat}</span>
+                        </td>
+                        <td class="text-red" style="text-align: right; font-weight: 900; white-space: nowrap;">-${fmt(e.amount)}</td>
+                        <td style="text-align: center;">
+                            <button type="button" class="btn-del-exp" onclick="deleteExpense('${e.id}')" title="Supprimer">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+                }).join("");
+            }
+        }
+
+        function init() {
+            updateHeaderAccountTitle();
+            const picker = document.getElementById("datePicker");
+            picker.value = state.currentDate;
+            picker.addEventListener("change", (e) => {
+                state.currentDate = e.target.value;
+                renderAll();
+            });
+
+            const catSel = document.getElementById("mCat");
+            catSel.innerHTML = '<option value="" disabled selected>-- Choisir --</option>';
+            categories.forEach(c => {
+                let opt = document.createElement("option");
+                opt.value = c;
+                opt.text = c;
+                catSel.appendChild(opt);
+            });
+
+            loadFromGoogleSheets(false);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
