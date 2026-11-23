@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Mes Comptes — Vue Mobile</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-body: #e2e8f0;
+            --bg-card: #ffffff;
+            --primary: #f97316;
+            --header-grad: linear-gradient(135deg, #0f172a, #1e3a8a);
+            --blue-dark: #1e3a8a;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #cbd5e1;
+            --green: #059669;
+            --red: #dc2626;
+            --radius: 16px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+            padding-bottom: calc(28px + env(safe-area-inset-bottom));
+            overflow-x: hidden;
+        }
+
+        /* HEADER & KPI */
+        header {
+            position: sticky; top: 0; z-index: 40;
+            background: var(--header-grad);
+            color: white;
+            padding: calc(12px + env(safe-area-inset-top)) 16px 14px 16px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
+        }
+        .top-bar {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;
+        }
+        .app-title { font-size: 18px; font-weight: 900; display: flex; align-items: center; gap: 8px; }
+        .top-actions { display: flex; align-items: center; gap: 8px; }
+        .month-select {
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+            color: #fff; font-size: 12px; font-weight: 800; padding: 4px 8px; border-radius: 12px; outline: none;
+        }
+        .btn-sync {
+            background: rgba(255,255,255,0.15); border: none; color: #fff;
+            width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 12px;
+        }
+
+        .kpi-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            background: rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 14px; padding: 12px;
+            backdrop-filter: blur(6px);
+        }
+        .kpi-box { display: flex; flex-direction: column; }
+        .kpi-label { font-size: 10px; text-transform: uppercase; font-weight: 800; color: rgba(255,255,255,0.68); letter-spacing: 0.4px; }
+        .kpi-val { font-size: 19px; font-weight: 900; line-height: 1.2; margin-top: 2px; }
+        .val-green { color: #34d399; }
+        .val-red { color: #f87171; }
+        .val-white { color: #ffffff; }
+
+        /* CONTENEUR PRINCIPAL */
+        .container { padding: 16px 14px; max-width: 600px; margin: 0 auto; }
+
+        .section-title {
+            font-size: 12px; font-weight: 900; text-transform: uppercase; color: var(--text-muted);
+            letter-spacing: 0.6px; margin: 18px 0 10px 4px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .section-title:first-child { margin-top: 0; }
+
+        /* 1. CARTES SEMAINES */
+        .week-card {
+            background: var(--bg-card); border-radius: 14px; padding: 13px 15px;
+            margin-bottom: 9px; border-left: 5px solid var(--green);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            display: flex; justify-content: space-between; align-items: center; position: relative;
+        }
+        .week-card.neg { border-left-color: var(--red); }
+        .week-card.active-week {
+            border: 2px solid var(--primary); border-left-width: 6px; background: #fffaf5;
+        }
+        .badge-now {
+            position: absolute; top: -9px; right: 12px; background: var(--primary); color: #fff;
+            font-size: 9px; font-weight: 900; padding: 2px 8px; border-radius: 10px; text-transform: uppercase;
+        }
+        .w-title { font-size: 13px; font-weight: 900; color: var(--text-main); }
+        .w-sub { font-size: 11px; color: var(--text-muted); font-weight: 700; margin-top: 3px; }
+        .w-reste { font-size: 16px; font-weight: 900; flex-shrink: 0; margin-left: 8px; }
+
+        /* 2. SOMMES ENTRÉES & SORTIES FIXES (ACCORDÉON DÉPLIABLE) */
+        details.fixed-panel {
+            background: var(--bg-card); border-radius: var(--radius); overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 10px;
+        }
+        details.fixed-panel summary {
+            list-style: none; padding: 14px 16px; color: #fff; font-weight: 800; font-size: 14px;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+        }
+        details.fixed-panel summary::-webkit-details-marker { display: none; }
+        .bg-green { background: #047857; }
+        .bg-red { background: #b91c1c; }
+        .sum-right { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 900; }
+        .chevron { font-size: 12px; transition: transform 0.2s; opacity: 0.85; }
+        details[open] .chevron { transform: rotate(180deg); }
+
+        .fixed-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 11px 16px; border-bottom: 1px solid #f1f5f9; font-size: 13px;
+        }
+        .fixed-row:last-child { border-bottom: none; }
+        .fixed-row.checked { opacity: 0.55; background: #f8fafc; }
+        .fixed-row.checked .f-name { text-decoration: line-through; }
+        .f-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+        .f-day {
+            background: #f1f5f9; color: var(--text-muted); font-size: 11px; font-weight: 800;
+            padding: 2px 6px; border-radius: 6px; flex-shrink: 0;
+        }
+        .f-name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .f-amt { font-weight: 900; flex-shrink: 0; margin-left: 8px; }
+
+        /* 3. TABLEAU DES DÉPENSES EN FIN DE PAGE */
+        .table-card {
+            background: var(--bg-card); border-radius: var(--radius); overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .table-header-bar {
+            background: #334155; color: #fff; padding: 12px 16px;
+            font-size: 14px; font-weight: 800; display: flex; justify-content: space-between; align-items: center;
+        }
+        .table-expenses { width: 100%; border-collapse: collapse; }
+        .table-expenses th {
+            text-align: left; padding: 10px 12px; background: #f8fafc;
+            font-size: 10px; text-transform: uppercase; color: var(--text-muted);
+            border-bottom: 1px solid var(--border); font-weight: 800;
+        }
+        .table-expenses td {
+            padding: 11px 12px; font-size: 13px; border-bottom: 1px solid #f1f5f9;
+            font-weight: 700; vertical-align: middle;
+        }
+        .table-expenses tr:last-child td { border-bottom: none; }
+        .exp-cat-tag {
+            display: inline-block; font-size: 10px; font-weight: 800; color: var(--blue-dark);
+            background: #eff6ff; padding: 2px 6px; border-radius: 5px; margin-top: 3px;
+        }
+
+        .text-green { color: var(--green); }
+        .text-red { color: var(--red); }
+        @keyframes fa-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .spin { animation: fa-spin 1s infinite linear; }
+    </style>
+</head>
+<body>
+
+    <!-- EN-TÊTE + 4 KPI -->
+    <header>
+        <div class="top-bar">
+            <div class="app-title"><i class="fas fa-wallet" style="color: var(--primary);"></i> Mes Comptes</div>
+            <div class="top-actions">
+                <input type="month" id="datePicker" class="month-select">
+                <button type="button" class="btn-sync" onclick="loadFromGoogleSheets()" title="Actualiser">
+                    <i class="fas fa-sync-alt" id="syncIcon"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-box">
+                <span class="kpi-label">Entrées</span>
+                <span class="kpi-val val-green" id="kpiIn">0,00 €</span>
+            </div>
+            <div class="kpi-box" style="text-align: right;">
+                <span class="kpi-label">Charges Fixes</span>
+                <span class="kpi-val val-red" id="kpiOut">0,00 €</span>
+            </div>
+            <div class="kpi-box">
+                <span class="kpi-label">Reste à Vivre</span>
+                <span class="kpi-val val-white" id="kpiBudget">0,00 €</span>
+            </div>
+            <div class="kpi-box" style="text-align: right;">
+                <span class="kpi-label">Reste Fin Mois</span>
+                <span class="kpi-val val-green" id="kpiFinal">0,00 €</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 1. LES SEMAINES -->
+        <div class="section-title"><span>Budget par semaine</span></div>
+        <div id="weeksList"></div>
+
+        <!-- 2. SOMMES ENTRÉES ET SORTIES -->
+        <div class="section-title"><span>Entrées & Charges fixes</span></div>
+        
+        <details class="fixed-panel">
+            <summary class="bg-green">
+                <span><i class="fas fa-arrow-down" style="margin-right:6px;"></i> Salaires & Rentrées</span>
+                <div class="sum-right">
+                    <span id="totIn">0,00 €</span>
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+            </summary>
+            <div id="listInMobile"></div>
+        </details>
+
+        <details class="fixed-panel">
+            <summary class="bg-red">
+                <span><i class="fas fa-arrow-up" style="margin-right:6px;"></i> Charges Fixes</span>
+                <div class="sum-right">
+                    <span id="totOut">0,00 €</span>
+                    <i class="fas fa-chevron-down chevron"></i>
+                </div>
+            </summary>
+            <div id="listOutMobile"></div>
+        </details>
+
+        <!-- 3. TABLEAU DES DÉPENSES EN FIN DE PAGE -->
+        <div class="section-title">
+            <span>Dépenses du cycle</span>
+            <span id="expCount" style="color: var(--primary);">0</span>
+        </div>
+        <div class="table-card">
+            <table class="table-expenses">
+                <thead>
+                    <tr>
+                        <th style="width: 58px;">Date</th>
+                        <th>Dépense & Catégorie</th>
+                        <th style="text-align: right;">Montant</th>
+                    </tr>
+                </thead>
+                <tbody id="tableExpenses"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyr1TQ3Q3RBB_FAYSOk6kSVxweAOuAk06NdqjKUrxzXPqF6Go9kNViA6mezbtDlOwuW9g/exec";
+
+        let state = {
+            currentDate: new Date().toISOString().slice(0, 7),
+            startDay: 25,
+            in: [],
+            out: [],
+            expenses: [],
+            pointage: {}
+        };
+
+        function getLegacyLocalData() {
+            const saved = localStorage.getItem("comptes_pc_v26_final");
+            if (!saved) return null;
+            try { return JSON.parse(saved); } catch (e) { return null; }
+        }
+
+        function guessCategory(merchant) {
+            const m = (merchant || "").toUpperCase();
+            if (/CARREFOUR|LECLERC|LIDL|AUCHAN|INTERMARCHE|SUPER U|ALDI|BOULANGERIE|EPICERIE|PICARD|BIOCOOP|GRAND FRAIS|MONOPRIX|CASINO/.test(m)) return "ALIMENTATION & COURSES";
+            if (/TOTAL|ESSO|SHELL|BP|AVIA|STATION|AUTOROUTE|VINCI|SANEF|PARKING|SNCF|UBER|BOLT|NORAUTO|FEU VERT/.test(m)) return "AUTO & TRANSPORTS";
+            if (/MCDO|MCDONALD|BURGER KING|KFC|QUICK|DOMINO|PIZZA|SUSHI|RESTAURANT|BRASSERIE|CAFE|STARBUCKS|PAUL|BRIOCHE/.test(m)) return "RESTAURANTS & FAST-FOOD";
+            if (/PHARMACIE|DOCTEUR|MEDECIN|DENTISTE|OPTIQUE|LABORATOIRE|SANTE/.test(m)) return "SANTÉ";
+            if (/DECATHLON|ZARA|H&M|KIABI|NIKE|ADIDAS|AMAZON|FNAC|DARTY|ACTION|GIFI|CENTRAKOR|IKEA|LEROY MERLIN|CASTORAMA/.test(m)) return "SHOPPING & HABILLEMENT";
+            if (/CINEMA|PATHE|GAUMONT|UGC|NETFLIX|SPOTIFY|STEAM|PLAYSTATION|NINTENDO/.test(m)) return "LOISIRS & MULTIMÉDIA";
+            return "AUTRE";
+        }
+
+        async function loadFromGoogleSheets() {
+            const icon = document.getElementById("syncIcon");
+            if (icon) icon.classList.add("spin");
+            const legacyData = getLegacyLocalData();
+
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL);
+                const data = await response.json();
+                if (data.status === "error") throw new Error(data.message);
+
+                if (data.config && Object.keys(data.config).length > 0) {
+                    if (data.config.startDay) state.startDay = parseInt(data.config.startDay) || 25;
+                    state.pointage = {};
+                    Object.keys(data.config).forEach(k => {
+                        if (k.startsWith("pointage_")) {
+                            const monthKey = k.replace("pointage_", "");
+                            state.pointage[monthKey] = data.config[k] ? data.config[k].split(",") : [];
+                        }
+                    });
+                } else if (legacyData) {
+                    if (legacyData.startDay) state.startDay = legacyData.startDay;
+                    if (legacyData.pointage) state.pointage = legacyData.pointage;
+                }
+
+                if (data.fixes && data.fixes.length > 0) {
+                    state.in = data.fixes.filter(f => f.type === "in");
+                    state.out = data.fixes.filter(f => f.type === "out");
+                } else if (legacyData) {
+                    if (legacyData.in) state.in = legacyData.in;
+                    if (legacyData.out) state.out = legacyData.out;
+                }
+
+                if (data.depenses) {
+                    state.expenses = data.depenses.map(row => {
+                        let rawAmt = String(row.montant || "0").replace(/[^0-9.,-]/g, '').replace(',', '.');
+                        let amount = parseFloat(rawAmt) || 0;
+                        let d = new Date(row.date);
+                        if (isNaN(d.getTime())) d = new Date();
+                        let exactDate = formatDateExact(d);
+                        let targetCycleMonth = getCycleMonthForDate(exactDate, state.startDay);
+                        let cat = row.cat || guessCategory(row.commercant);
+                        const isApple = String(row.id).startsWith("ap_") || String(row.carte).toLowerCase() !== "manuel";
+                        return {
+                            id: String(row.id),
+                            dateStr: targetCycleMonth,
+                            exactDate: exactDate,
+                            cat: cat,
+                            desc: row.commercant || "Dépense",
+                            amount: amount,
+                            fromApplePay: isApple
+                        };
+                    }).filter(e => e.amount > 0);
+                }
+
+                state.expenses.sort((a, b) => (b.exactDate || "").localeCompare(a.exactDate || ""));
+                renderAll();
+            } catch (err) {
+                if (legacyData) {
+                    if (legacyData.in) state.in = legacyData.in;
+                    if (legacyData.out) state.out = legacyData.out;
+                    if (legacyData.expenses) state.expenses = legacyData.expenses;
+                    if (legacyData.pointage) state.pointage = legacyData.pointage;
+                    if (legacyData.startDay) state.startDay = legacyData.startDay;
+                    renderAll();
+                }
+            } finally {
+                if (icon) icon.classList.remove("spin");
+            }
+        }
+
+        function clampDay(y, m, d) {
+            let max = new Date(y, m + 1, 0).getDate();
+            return d > max ? max : d;
+        }
+
+        function generateCycleDates(monthStr, startDay) {
+            let [y, m] = monthStr.split('-').map(Number);
+            let d1 = new Date(y, m - 2, clampDay(y, m - 2, startDay));
+            let d2 = new Date(y, m - 1, clampDay(y, m - 1, startDay));
+            let dates = [];
+            let curr = new Date(d1);
+            while (curr < d2) {
+                dates.push(new Date(curr));
+                curr.setDate(curr.getDate() + 1);
+            }
+            return dates;
+        }
+
+        function generateWeeksFromCycle(datesArray) {
+            let weeks = [];
+            for (let i = 0; i < 5; i++) {
+                let chunk = datesArray.slice(i * 7, (i + 1) * 7);
+                if (chunk.length === 0) break;
+                let s = String(chunk[0].getDate()).padStart(2, '0');
+                let e = String(chunk[chunk.length - 1].getDate()).padStart(2, '0');
+                weeks.push({
+                    label: `S${i+1} • Du ${s} au ${e}`,
+                    days: chunk.length,
+                    datesStr: chunk.map(d => formatDateExact(d))
+                });
+            }
+            return weeks;
+        }
+
+        function formatDateExact(d) {
+            return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        }
+
+        function getCycleMonthForDate(dateStr, startDay) {
+            let d = new Date(dateStr);
+            let y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate();
+            let maxD = new Date(y, m, 0).getDate();
+            if (day >= (startDay > maxD ? maxD : startDay)) {
+                m += 1; if (m > 12) { m = 1; y += 1; }
+            }
+            return `${y}-${String(m).padStart(2, '0')}`;
+        }
+
+        function getToday() { return formatDateExact(new Date()); }
+        const fmt = (num) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(num || 0);
+
+        function renderAll() {
+            // 1. Calculs KPI
+            let totIn = state.in.reduce((s, i) => s + Number(i.montant), 0);
+            let totOut = state.out.reduce((s, i) => s + Number(i.montant), 0);
+            let budget = totIn - totOut;
+
+            document.getElementById("kpiIn").innerText = fmt(totIn);
+            document.getElementById("kpiOut").innerText = "-" + fmt(totOut);
+            document.getElementById("kpiBudget").innerText = fmt(budget);
+            document.getElementById("totIn").innerText = fmt(totIn);
+            document.getElementById("totOut").innerText = "-" + fmt(totOut);
+
+            // 2. Semaines
+            let cycleDates = generateCycleDates(state.currentDate, state.startDay);
+            let dynamicWeeks = generateWeeksFromCycle(cycleDates);
+            let budgetPerDay = budget / cycleDates.length;
+            let currentExpenses = state.expenses.filter(e => e.dateStr === state.currentDate);
+            const todayStr = getToday();
+
+            let hWeeks = "";
+            let remainingMois = 0;
+            dynamicWeeks.forEach(w => {
+                let dispo = budgetPerDay * w.days;
+                let spent = currentExpenses.filter(e => w.datesStr.includes(e.exactDate)).reduce((s, e) => s + e.amount, 0);
+                let reste = dispo - spent;
+                remainingMois += reste;
+                const isNow = w.datesStr.includes(todayStr);
+
+                hWeeks += `
+                <div class="week-card ${reste < 0 ? 'neg' : ''} ${isNow ? 'active-week' : ''}">
+                    ${isNow ? '<span class="badge-now">En cours</span>' : ''}
+                    <div>
+                        <div class="w-title">${w.label}</div>
+                        <div class="w-sub">Budget ${fmt(dispo)} • Dépensé ${fmt(spent)}</div>
+                    </div>
+                    <div class="w-reste ${reste < 0 ? 'text-red' : 'text-green'}">${reste > 0 ? '+' : ''}${fmt(reste)}</div>
+                </div>`;
+            });
+            document.getElementById("weeksList").innerHTML = hWeeks;
+
+            const kpiFinal = document.getElementById("kpiFinal");
+            kpiFinal.innerText = fmt(remainingMois);
+            kpiFinal.className = "kpi-val " + (remainingMois < 0 ? "val-red" : "val-green");
+
+            // 3. Listes Entrées & Sorties (Lecture seule)
+            const monthPointage = state.pointage[state.currentDate] || [];
+            const buildFixedRow = (item, type) => {
+                const isChecked = monthPointage.includes(item.id);
+                return `
+                <div class="fixed-row ${isChecked ? 'checked' : ''}">
+                    <div class="f-left">
+                        <span class="f-day">J${item.jour}</span>
+                        <span class="f-name">${item.nom || 'Sans nom'}</span>
+                    </div>
+                    <span class="f-amt ${type === 'in' ? 'text-green' : 'text-red'}">
+                        ${type === 'in' ? '+' : '-'}${fmt(item.montant)}
+                    </span>
+                </div>`;
+            };
+            document.getElementById("listInMobile").innerHTML = state.in.map(x => buildFixedRow(x, 'in')).join("");
+            document.getElementById("listOutMobile").innerHTML = state.out.map(x => buildFixedRow(x, 'out')).join("");
+
+            // 4. Tableau des Dépenses en fin de page
+            document.getElementById("expCount").innerText = currentExpenses.length + " opération(s)";
+            if (currentExpenses.length === 0) {
+                document.getElementById("tableExpenses").innerHTML = `<tr><td colspan="3" style="text-align:center; padding:32px; color:var(--text-muted);">Aucune dépense sur ce cycle.</td></tr>`;
+            } else {
+                document.getElementById("tableExpenses").innerHTML = currentExpenses.map(e => {
+                    const dAff = e.exactDate ? e.exactDate.split('-').reverse().slice(0,2).join('/') : '';
+                    const apple = e.fromApplePay ? `<i class="fab fa-apple" style="color:#475569; margin-right:3px;"></i>` : '';
+                    return `
+                    <tr>
+                        <td style="color: var(--text-muted); font-size: 12px;">${dAff}</td>
+                        <td>
+                            <div>${apple}${e.desc}</div>
+                            <span class="exp-cat-tag">${e.cat}</span>
+                        </td>
+                        <td class="text-red" style="text-align: right; font-weight: 900; white-space: nowrap;">-${fmt(e.amount)}</td>
+                    </tr>`;
+                }).join("");
+            }
+        }
+
+        function init() {
+            const picker = document.getElementById("datePicker");
+            picker.value = state.currentDate;
+            picker.addEventListener("change", (e) => {
+                state.currentDate = e.target.value;
+                renderAll();
+            });
+            loadFromGoogleSheets();
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
