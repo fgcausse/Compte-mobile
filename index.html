@@ -37,54 +37,66 @@
             position: sticky; top: 0; z-index: 40;
             background: var(--header-grad);
             color: white;
-            padding: calc(12px + env(safe-area-inset-top)) 14px 14px 14px;
+            padding: calc(10px + env(safe-area-inset-top)) 14px 12px 14px;
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
         }
-        .top-bar {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 6px;
+        .header-row-1 {
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 8px; margin-bottom: 10px;
         }
-        .app-title-wrap { display: flex; align-items: center; gap: 6px; min-width: 0; }
-        .app-title { font-size: 15px; font-weight: 900; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .app-title {
+            font-size: 16px; font-weight: 900; display: flex; align-items: center; gap: 7px;
+            min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
         .cloud-badge {
-            font-size: 10px; font-weight: 800; padding: 3px 6px; border-radius: 12px;
-            background: rgba(255,255,255,0.12); color: #cbd5e1; display: inline-flex; align-items: center; gap: 4px;
+            font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 12px;
+            background: rgba(255,255,255,0.12); color: #cbd5e1;
+            display: inline-flex; align-items: center; gap: 4px;
             white-space: nowrap; flex-shrink: 0;
         }
         .cloud-badge.ok { background: rgba(16, 185, 129, 0.22); color: #6ee7b7; }
         .cloud-badge.saving { background: rgba(249, 115, 22, 0.25); color: #fdba74; }
         .cloud-badge.err { background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
 
-        .top-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+        .header-row-2 {
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 8px; margin-bottom: 10px;
+        }
         .month-select {
+            flex: 1; min-width: 0;
             background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
-            color: #fff; font-size: 11px; font-weight: 800; padding: 5px 5px; border-radius: 10px; outline: none;
-            max-width: 98px;
+            color: #fff; font-size: 12px; font-weight: 800; padding: 7px 10px;
+            border-radius: 10px; outline: none; height: 34px;
+        }
+        .toolbar-btns {
+            display: flex; align-items: center; gap: 6px; flex-shrink: 0;
         }
         .btn-icon-top {
-            background: rgba(255,255,255,0.15); border: none; color: #fff;
-            width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 11px; flex-shrink: 0;
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: #fff;
+            width: 34px; height: 34px; border-radius: 10px;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 13px; flex-shrink: 0;
         }
         .btn-top-add {
             background: var(--primary); color: #fff; border: none;
-            border-radius: 10px; padding: 6px 9px;
+            border-radius: 10px; padding: 0 12px; height: 34px;
             font-size: 12px; font-weight: 900;
-            display: inline-flex; align-items: center; gap: 4px;
+            display: inline-flex; align-items: center; gap: 5px;
             box-shadow: 0 2px 6px rgba(249, 115, 22, 0.4);
             cursor: pointer; white-space: nowrap; flex-shrink: 0;
         }
         .btn-top-add:active { transform: scale(0.96); background: var(--primary-hover); }
 
         .kpi-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px;
             background: rgba(255, 255, 255, 0.09);
             border: 1px solid rgba(255, 255, 255, 0.14);
-            border-radius: 14px; padding: 12px;
+            border-radius: 14px; padding: 10px 12px;
             backdrop-filter: blur(6px);
         }
-        .kpi-box { display: flex; flex-direction: column; }
+        .kpi-box { display: flex; flex-direction: column; min-width: 0; }
         .kpi-label { font-size: 10px; text-transform: uppercase; font-weight: 800; color: rgba(255,255,255,0.68); letter-spacing: 0.4px; }
-        .kpi-val { font-size: 19px; font-weight: 900; line-height: 1.2; margin-top: 2px; }
+        .kpi-val { font-size: 18px; font-weight: 900; line-height: 1.2; margin-top: 2px; white-space: nowrap; }
         .val-green { color: #34d399; }
         .val-red { color: #f87171; }
         .val-white { color: #ffffff; }
@@ -249,13 +261,14 @@
 
     <!-- EN-TÊTE + 4 KPI -->
     <header>
-        <div class="top-bar">
-            <div class="app-title-wrap">
-                <div class="app-title" id="headerAccountName"><i class="fas fa-wallet" style="color: var(--primary);"></i> Comptes</div>
-                <span id="cloudStatus" class="cloud-badge"><i class="fas fa-cloud"></i> Sync</span>
-            </div>
-            <div class="top-actions">
-                <input type="month" id="datePicker" class="month-select">
+        <div class="header-row-1">
+            <div class="app-title" id="headerAccountName"><i class="fas fa-wallet" style="color: var(--primary);"></i> Mes Comptes</div>
+            <span id="cloudStatus" class="cloud-badge"><i class="fas fa-cloud"></i> Sync</span>
+        </div>
+
+        <div class="header-row-2">
+            <input type="month" id="datePicker" class="month-select">
+            <div class="toolbar-btns">
                 <button type="button" class="btn-icon-top" onclick="openAccountModal()" title="Nouveau compte / Changer de fichier Drive">
                     <i class="fas fa-folder-plus"></i>
                 </button>
@@ -420,9 +433,8 @@
     <script>
         const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyr1TQ3Q3RBB_FAYSOk6kSVxweAOuAk06NdqjKUrxzXPqF6Go9kNViA6mezbtDlOwuW9g/exec";
 
-        // Gestion multi-comptes
         let accounts = JSON.parse(localStorage.getItem("comptes_accounts_list") || "null") || [
-            { id: "default", name: "Principal", url: DEFAULT_SCRIPT_URL, storageKey: "comptes_pc_v26_final" }
+            { id: "default", name: "Mes Comptes", url: DEFAULT_SCRIPT_URL, storageKey: "comptes_pc_v26_final" }
         ];
         let activeAccountId = localStorage.getItem("comptes_active_account_id") || "default";
 
@@ -514,7 +526,7 @@
             const acc = getActiveAccount();
             const el = document.getElementById("headerAccountName");
             if (el) {
-                el.innerHTML = `<i class="fas fa-wallet" style="color: var(--primary);"></i> ${acc.name}`;
+                el.innerHTML = `<i class="fas fa-wallet" style="color: var(--primary); flex-shrink:0;"></i> <span style="overflow:hidden; text-overflow:ellipsis;">${acc.name}</span>`;
             }
         }
 
@@ -689,7 +701,6 @@
             }
         }
 
-        /* PAVÉ NUMÉRIQUE & MODALE */
         function addNum(val) {
             if (val === '.' && currentAmountStr.includes('.')) return;
             if (currentAmountStr.includes('.') && currentAmountStr.split('.')[1].length >= 2) return;
@@ -756,7 +767,6 @@
             }
         }
 
-        /* CALCULS DE CYCLES & DATES */
         function clampDay(y, m, d) {
             let max = new Date(y, m + 1, 0).getDate();
             return d > max ? max : d;
