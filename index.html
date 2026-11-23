@@ -58,34 +58,61 @@
         .cloud-badge.saving { background: rgba(249, 115, 22, 0.25); color: #fdba74; }
         .cloud-badge.err { background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
 
-        .header-row-2 {
-            display: flex; justify-content: space-between; align-items: center;
-            gap: 8px; margin-bottom: 10px;
+        /* BARRE D'ACTIONS HOMOGÈNE (CALENDRIER, COMPTE, SYNC, DÉPENSE) */
+        .header-toolbar {
+            display: grid;
+            grid-template-columns: 1.45fr 0.6fr 0.6fr 1.15fr;
+            gap: 6px;
+            margin-bottom: 10px;
+            align-items: center;
         }
+        .toolbar-control {
+            height: 38px;
+            width: 100%;
+            min-width: 0;
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.15s;
+            white-space: nowrap;
+        }
+        .toolbar-control:active { transform: scale(0.97); }
         .month-select {
-            flex: 1; min-width: 0;
-            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
-            color: #fff; font-size: 12px; font-weight: 800; padding: 7px 10px;
-            border-radius: 10px; outline: none; height: 34px;
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.24);
+            color: #fff;
+            padding: 0 8px;
+            outline: none;
+            text-align: center;
         }
-        .toolbar-btns {
-            display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+        .month-select::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            opacity: 0.85;
+            cursor: pointer;
         }
-        .btn-icon-top {
-            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2); color: #fff;
-            width: 34px; height: 34px; border-radius: 10px;
-            display: inline-flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 13px; flex-shrink: 0;
+        .btn-toolbar {
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.24);
+            color: #fff;
+            padding: 0 8px;
+            font-size: 13px;
         }
-        .btn-top-add {
-            background: var(--primary); color: #fff; border: none;
-            border-radius: 10px; padding: 0 12px; height: 34px;
-            font-size: 12px; font-weight: 900;
-            display: inline-flex; align-items: center; gap: 5px;
-            box-shadow: 0 2px 6px rgba(249, 115, 22, 0.4);
-            cursor: pointer; white-space: nowrap; flex-shrink: 0;
+        .btn-toolbar:hover { background: rgba(255,255,255,0.22); }
+        .btn-toolbar-primary {
+            background: var(--primary);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: #fff;
+            padding: 0 10px;
+            font-weight: 900;
+            box-shadow: 0 2px 6px rgba(249, 115, 22, 0.35);
         }
-        .btn-top-add:active { transform: scale(0.96); background: var(--primary-hover); }
+        .btn-toolbar-primary:active { background: var(--primary-hover); }
 
         .kpi-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px;
@@ -286,19 +313,17 @@
             <span id="cloudStatus" class="cloud-badge"><i class="fas fa-cloud"></i> Sync</span>
         </div>
 
-        <div class="header-row-2">
-            <input type="month" id="datePicker" class="month-select">
-            <div class="toolbar-btns">
-                <button type="button" class="btn-icon-top" onclick="openAccountModal()" title="Nouveau compte / Changer de fichier Drive">
-                    <i class="fas fa-folder-plus"></i>
-                </button>
-                <button type="button" class="btn-icon-top" onclick="loadFromGoogleSheets(true)" title="Actualiser">
-                    <i class="fas fa-sync-alt" id="syncIcon"></i>
-                </button>
-                <button type="button" class="btn-top-add" onclick="openModal()">
-                    <i class="fas fa-plus"></i> Dépense
-                </button>
-            </div>
+        <div class="header-toolbar">
+            <input type="month" id="datePicker" class="toolbar-control month-select" aria-label="Période">
+            <button type="button" class="toolbar-control btn-toolbar" onclick="openAccountModal()" title="Nouveau compte / Changer de fichier Drive" aria-label="Nouveau compte">
+                <i class="fas fa-folder-plus"></i>
+            </button>
+            <button type="button" class="toolbar-control btn-toolbar" onclick="loadFromGoogleSheets(true)" title="Actualiser" aria-label="Actualiser">
+                <i class="fas fa-sync-alt" id="syncIcon"></i>
+            </button>
+            <button type="button" class="toolbar-control btn-toolbar-primary" onclick="openModal()">
+                <i class="fas fa-plus"></i> Dépense
+            </button>
         </div>
 
         <div class="kpi-grid">
