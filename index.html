@@ -40,16 +40,32 @@
             padding: calc(10px + env(safe-area-inset-top)) 14px 12px 14px;
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
         }
+
+        /* LIGNE 1 : TITRE + NOUVEAU DOSSIER + RAFRAÎCHISSEMENT + SYNCHRO GOOGLE */
         .header-row-1 {
             display: flex; justify-content: space-between; align-items: center;
             gap: 8px; margin-bottom: 10px;
         }
         .app-title {
             font-size: 16px; font-weight: 900; display: flex; align-items: center; gap: 7px;
-            min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            min-width: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
+        .header-row1-right {
+            display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+        }
+        .btn-mini-header {
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.24);
+            color: #fff;
+            width: 30px; height: 30px;
+            border-radius: 9px;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 12px; flex-shrink: 0;
+            transition: transform 0.1s, background 0.15s;
+        }
+        .btn-mini-header:active { transform: scale(0.95); background: rgba(255,255,255,0.24); }
         .cloud-badge {
-            font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 12px;
+            font-size: 10px; font-weight: 800; height: 30px; padding: 0 8px; border-radius: 9px;
             background: rgba(255,255,255,0.12); color: #cbd5e1;
             display: inline-flex; align-items: center; gap: 4px;
             white-space: nowrap; flex-shrink: 0;
@@ -58,11 +74,11 @@
         .cloud-badge.saving { background: rgba(249, 115, 22, 0.25); color: #fdba74; }
         .cloud-badge.err { background: rgba(239, 68, 68, 0.25); color: #fca5a5; }
 
-        /* BARRE D'ACTIONS HOMOGÈNE (CALENDRIER, COMPTE, SYNC, DÉPENSE) */
-        .header-toolbar {
+        /* LIGNE 2 : CALENDRIER + BOUTON DÉPENSE */
+        .header-row-2 {
             display: grid;
-            grid-template-columns: 1.45fr 0.6fr 0.6fr 1.15fr;
-            gap: 6px;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
             margin-bottom: 10px;
             align-items: center;
         }
@@ -72,22 +88,22 @@
             min-width: 0;
             border-radius: 10px;
             font-family: inherit;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 800;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
+            gap: 6px;
             cursor: pointer;
             transition: transform 0.1s, background 0.15s;
             white-space: nowrap;
         }
-        .toolbar-control:active { transform: scale(0.97); }
+        .toolbar-control:active { transform: scale(0.98); }
         .month-select {
             background: rgba(255,255,255,0.14);
             border: 1px solid rgba(255,255,255,0.24);
             color: #fff;
-            padding: 0 8px;
+            padding: 0 10px;
             outline: none;
             text-align: center;
         }
@@ -96,19 +112,11 @@
             opacity: 0.85;
             cursor: pointer;
         }
-        .btn-toolbar {
-            background: rgba(255,255,255,0.14);
-            border: 1px solid rgba(255,255,255,0.24);
-            color: #fff;
-            padding: 0 8px;
-            font-size: 13px;
-        }
-        .btn-toolbar:hover { background: rgba(255,255,255,0.22); }
         .btn-toolbar-primary {
             background: var(--primary);
             border: 1px solid rgba(255,255,255,0.18);
             color: #fff;
-            padding: 0 10px;
+            padding: 0 12px;
             font-weight: 900;
             box-shadow: 0 2px 6px rgba(249, 115, 22, 0.35);
         }
@@ -213,7 +221,7 @@
         }
         .btn-del-exp:active { color: var(--red); background: #fef2f2; }
 
-        /* MODALES (DÉPENSE & NOUVEAU COMPTE) */
+        /* MODALES (DÉPENSE & NOUVEAU DOSSIER) */
         .modal-overlay {
             display: none; position: fixed; inset: 0; z-index: 100;
             background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);
@@ -308,19 +316,23 @@
 
     <!-- EN-TÊTE + 4 KPI -->
     <header>
+        <!-- LIGNE 1 : TITRE + NOUVEAU DOSSIER + RAFRAÎCHISSEMENT + SYNCHRO GOOGLE -->
         <div class="header-row-1">
             <div class="app-title" id="headerAccountName"><i class="fas fa-wallet" style="color: var(--primary);"></i> Mes Comptes</div>
-            <span id="cloudStatus" class="cloud-badge"><i class="fas fa-cloud"></i> Sync</span>
+            <div class="header-row1-right">
+                <button type="button" class="btn-mini-header" onclick="openAccountModal()" title="Nouveau dossier / Fichier Drive" aria-label="Nouveau dossier">
+                    <i class="fas fa-folder-plus"></i>
+                </button>
+                <button type="button" class="btn-mini-header" onclick="loadFromGoogleSheets(true)" title="Rafraîchir" aria-label="Rafraîchir">
+                    <i class="fas fa-sync-alt" id="syncIcon"></i>
+                </button>
+                <span id="cloudStatus" class="cloud-badge"><i class="fas fa-cloud"></i> Sync</span>
+            </div>
         </div>
 
-        <div class="header-toolbar">
+        <!-- LIGNE 2 : CALENDRIER + BOUTON DÉPENSE -->
+        <div class="header-row-2">
             <input type="month" id="datePicker" class="toolbar-control month-select" aria-label="Période">
-            <button type="button" class="toolbar-control btn-toolbar" onclick="openAccountModal()" title="Nouveau compte / Changer de fichier Drive" aria-label="Nouveau compte">
-                <i class="fas fa-folder-plus"></i>
-            </button>
-            <button type="button" class="toolbar-control btn-toolbar" onclick="loadFromGoogleSheets(true)" title="Actualiser" aria-label="Actualiser">
-                <i class="fas fa-sync-alt" id="syncIcon"></i>
-            </button>
             <button type="button" class="toolbar-control btn-toolbar-primary" onclick="openModal()">
                 <i class="fas fa-plus"></i> Dépense
             </button>
@@ -396,23 +408,23 @@
         </div>
     </div>
 
-    <!-- MODALE NOUVEAU COMPTE / GESTION GOOGLE DRIVE -->
+    <!-- MODALE NOUVEAU DOSSIER / GESTION GOOGLE DRIVE -->
     <div class="modal-overlay" id="accountModal" onclick="if(event.target===this) closeAccountModal()">
         <div class="modal-sheet">
             <div class="modal-header">
-                <div class="modal-header-title"><i class="fas fa-folder-plus"></i><span>Comptes & Drive</span></div>
+                <div class="modal-header-title"><i class="fas fa-folder-plus"></i><span>Dossiers & Fichiers Drive</span></div>
                 <button type="button" class="close-btn" onclick="closeAccountModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label>Comptes enregistrés</label>
+                    <label>Dossiers enregistrés</label>
                     <div id="accountsList"></div>
                 </div>
                 <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 2px 0;">
                 <form onsubmit="event.preventDefault(); addNewAccount();">
                     <div style="display: flex; flex-direction: column; gap: 12px;">
                         <div class="form-group">
-                            <label>Nom du nouveau compte</label>
+                            <label>Nom du nouveau dossier</label>
                             <input type="text" id="newAccName" class="form-control" required placeholder="Ex: Compte Joint, Perso 2...">
                         </div>
                         <div class="form-group">
@@ -420,7 +432,7 @@
                             <input type="url" id="newAccUrl" class="form-control" required placeholder="https://script.google.com/macros/s/.../exec">
                         </div>
                         <button type="submit" class="btn-modal btn-submit" style="width: 100%;">
-                            <i class="fas fa-plus"></i> Ajouter et ouvrir ce compte
+                            <i class="fas fa-plus"></i> Ajouter et ouvrir ce dossier
                         </button>
                     </div>
                 </form>
@@ -518,7 +530,7 @@
                         <div class="account-url">${acc.url}</div>
                     </div>
                     ${acc.id !== 'default' ? `
-                        <button type="button" class="btn-del-exp" onclick="deleteAccount('${acc.id}')" title="Supprimer ce compte">
+                        <button type="button" class="btn-del-exp" onclick="deleteAccount('${acc.id}')" title="Supprimer ce dossier">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     ` : ''}
@@ -558,7 +570,7 @@
         }
 
         function deleteAccount(id) {
-            if (!confirm("Retirer ce compte de la liste ? (Vos données restent intactes sur Google Drive)")) return;
+            if (!confirm("Retirer ce dossier de la liste ? (Vos données restent intactes sur Google Drive)")) return;
             accounts = accounts.filter(a => a.id !== id);
             if (activeAccountId === id) {
                 activeAccountId = accounts[0].id;
