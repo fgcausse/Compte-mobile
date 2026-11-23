@@ -148,6 +148,8 @@
         .input-bare:focus { border-color: var(--blue-dark); background: #fff; box-shadow: 0 0 0 2px rgba(30, 58, 138, 0.15); }
         .input-num { text-align: right; font-weight: 800; }
         
+        .btn-edit { background: none; border: none; color: #64748b; cursor: pointer; font-size: 15px; padding: 6px; border-radius: 6px; transition: 0.2s; touch-action: manipulation; }
+        .btn-edit:hover { color: var(--blue-dark); background: #eff6ff; }
         .btn-del { background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 16px; padding: 6px; border-radius: 6px; transition: 0.2s; touch-action: manipulation; }
         .btn-del:hover { color: var(--red); background: #fef2f2; }
         
@@ -175,16 +177,16 @@
 
         .table-expenses { width: 100%; border-collapse: collapse; }
         .table-expenses th { 
-            text-align: left; padding: 16px 24px; background: #f8fafc; 
+            text-align: left; padding: 16px 20px; background: #f8fafc; 
             font-size: 12px; text-transform: uppercase; color: var(--text-muted); 
             border-bottom: 1px solid var(--border); font-weight: 800; letter-spacing: 0.5px; 
         }
-        .table-expenses td { padding: 14px 24px; font-size: 14px; border-bottom: 1px solid #f1f5f9; font-weight: 600; vertical-align: middle;}
+        .table-expenses td { padding: 14px 20px; font-size: 14px; border-bottom: 1px solid #f1f5f9; font-weight: 600; vertical-align: middle;}
         .table-expenses tr:hover { background: #f8fafc; }
         .badge { background: #e0e7ff; color: var(--blue-dark); border: 1px solid #c7d2fe; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 800; display: inline-block;}
         .badge-apple { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 800; margin-left: 6px; vertical-align: middle; }
         
-        .table-expenses th:last-child, .table-expenses td:last-child { padding-right: 30px; text-align: center; }
+        .table-expenses th:last-child, .table-expenses td:last-child { padding-right: 24px; text-align: center; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; padding: 16px; }
         .modal-overlay.open { display: flex; }
@@ -274,6 +276,9 @@
     <header>
         <div class="header-left">
             <div class="header-title" id="headerAccountName"><i class="fas fa-wallet" style="color: var(--primary);"></i> Mes Comptes</div>
+            <button type="button" class="btn btn-secondary" onclick="window.location.href='index.html'" title="Passer à la version Mobile" aria-label="Version Mobile">
+                <i class="fas fa-mobile-alt"></i> Mobile
+            </button>
             <span id="cloudStatus" class="cloud-status"><i class="fas fa-cloud"></i> Sync...</span>
         </div>
         
@@ -309,11 +314,11 @@
         </div>
 
         <div class="header-actions">
-            <div class="h-input-group" title="Jour de début de cycle (ex: 25)">
+            <div class="h-input-group" title="Jour de début de mois (ex: 25)">
                 <i class="fas fa-calendar-day"></i>
                 <input type="number" id="startDayConfig" class="date-picker" style="width: 44px; text-align: center;" min="1" max="31">
             </div>
-            <div class="h-input-group" title="Sélectionner le cycle mensuel">
+            <div class="h-input-group" title="Sélectionner le mois">
                 <i class="fas fa-calendar-alt"></i>
                 <input type="month" id="datePicker" class="date-picker">
             </div>
@@ -405,12 +410,12 @@
                     <div class="weeks-container" id="weeksList"></div>
                 </div>
 
-                <!-- Tableau Dépenses Courantes -->
+                <!-- Tableau Dépenses du mois -->
                 <div class="panel">
                     <div class="panel-header bg-blue-dark" style="font-size: 15px;">
                         <div class="panel-header-title">
                             <i class="fas fa-receipt" style="margin-right:8px; color: var(--primary); flex-shrink: 0;"></i>
-                            <span>Dépenses courantes</span>
+                            <span>Dépenses du mois</span>
                         </div>
                         <div class="panel-header-actions">
                             <button type="button" class="btn-sm-add btn-add-orange" onclick="openModal()" aria-label="Ajouter une Dépense">+</button>
@@ -420,11 +425,11 @@
                         <table class="table-expenses">
                             <thead>
                                 <tr>
-                                    <th style="width:125px">Période</th>
+                                    <th style="width:120px">Période</th>
                                     <th style="width:165px">Catégorie</th>
                                     <th>Description / Lieu</th>
-                                    <th style="text-align:right; width: 115px;">Montant</th>
-                                    <th style="width:55px;"><i class="fas fa-cog"></i></th>
+                                    <th style="text-align:right; width: 110px;">Montant</th>
+                                    <th style="width:82px;"><i class="fas fa-cog"></i></th>
                                 </tr>
                             </thead>
                             <tbody id="tableExpenses"></tbody>
@@ -466,11 +471,11 @@
         </div>
     </div>
 
-    <!-- MODAL AJOUT DÉPENSE -->
+    <!-- MODAL AJOUT / MODIFICATION DÉPENSE -->
     <div class="modal-overlay" id="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <span><i class="fas fa-cart-plus mr-2"></i> Saisir une dépense</span>
+                <span id="expenseModalTitle"><i class="fas fa-cart-plus mr-2"></i> Saisir une dépense</span>
                 <button type="button" class="close-btn" onclick="closeModal()">&times;</button>
             </div>
             <form onsubmit="event.preventDefault(); saveExpense();">
@@ -510,7 +515,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Valider</button>
+                    <button type="submit" class="btn btn-primary" id="expenseSubmitBtn"><i class="fas fa-check"></i> Valider</button>
                 </div>
             </form>
         </div>
@@ -654,6 +659,7 @@
 
         let myChart = null;
         let currentAmountStr = "";
+        let editingExpenseId = null;
         let cycleDatesGlobal = []; 
         let saveTimeout = null;
 
@@ -1009,16 +1015,37 @@
         function getToday() { return formatDateExact(new Date()); }
         const fmt = (num) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(num || 0);
         
-        function openModal() { 
+        function openModal() {
+            editingExpenseId = null;
             currentAmountStr = "";
+            document.getElementById("expenseModalTitle").innerHTML = `<i class="fas fa-cart-plus mr-2"></i> Saisir une dépense`;
+            document.getElementById("expenseSubmitBtn").innerHTML = `<i class="fas fa-check"></i> Valider`;
             document.getElementById("mAmount").value = ""; 
             document.getElementById("mDesc").value = ""; 
             document.getElementById("mCat").value = ""; 
             document.getElementById("mDate").value = getToday(); 
             document.getElementById("modal").classList.add("open"); 
         }
+
+        function editExpense(id) {
+            const exp = state.expenses.find(e => String(e.id) === String(id));
+            if (!exp) return;
+
+            editingExpenseId = String(exp.id);
+            currentAmountStr = String(Number(exp.amount));
+            document.getElementById("expenseModalTitle").innerHTML = `<i class="fas fa-pen mr-2"></i> Modifier la dépense`;
+            document.getElementById("expenseSubmitBtn").innerHTML = `<i class="fas fa-check"></i> Enregistrer`;
+            document.getElementById("mDate").value = exp.exactDate || getToday();
+            document.getElementById("mCat").value = categories.includes(exp.cat) ? exp.cat : "AUTRE";
+            document.getElementById("mDesc").value = exp.desc || "";
+            document.getElementById("mAmount").value = currentAmountStr;
+            document.getElementById("modal").classList.add("open");
+        }
         
-        function closeModal() { document.getElementById("modal").classList.remove("open"); }
+        function closeModal() {
+            editingExpenseId = null;
+            document.getElementById("modal").classList.remove("open");
+        }
 
         function togglePointage(id, isChecked) {
             if(!state.pointage[state.currentDate]) state.pointage[state.currentDate] = [];
@@ -1134,7 +1161,7 @@
             }
 
             if(currentExpenses.length === 0) {
-                document.getElementById("tableExpenses").innerHTML = `<tr><td colspan="5" style="text-align:center; padding:50px; color:var(--text-muted);"><i class="fas fa-receipt" style="font-size:32px; margin-bottom:12px; display:block; opacity:0.5;"></i> Aucune dépense dans ce cycle.</td></tr>`;
+                document.getElementById("tableExpenses").innerHTML = `<tr><td colspan="5" style="text-align:center; padding:50px; color:var(--text-muted);"><i class="fas fa-receipt" style="font-size:32px; margin-bottom:12px; display:block; opacity:0.5;"></i> Aucune dépense dans ce mois.</td></tr>`;
             } else {
                 document.getElementById("tableExpenses").innerHTML = currentExpenses.map(e => {
                     let wLabel = "Inconnu";
@@ -1155,9 +1182,12 @@
                                 ${catOptions}
                             </select>
                         </td>
-                        <td>${e.desc} ${appleBadge}</td>
-                        <td class="text-red" style="text-align:right; font-weight:900;">-${fmt(e.amount)}</td>
-                        <td><button type="button" class="btn-del" onclick="deleteExpense('${e.id}')"><i class="fas fa-trash-alt"></i></button></td>
+                        <td style="cursor:pointer;" onclick="editExpense('${e.id}')" title="Cliquer pour modifier">${e.desc} ${appleBadge}</td>
+                        <td class="text-red" style="text-align:right; font-weight:900; cursor:pointer;" onclick="editExpense('${e.id}')" title="Cliquer pour modifier">-${fmt(e.amount)}</td>
+                        <td style="white-space:nowrap;">
+                            <button type="button" class="btn-edit" onclick="editExpense('${e.id}')" title="Modifier la dépense"><i class="fas fa-pen"></i></button>
+                            <button type="button" class="btn-del" onclick="deleteExpense('${e.id}')" title="Supprimer la dépense"><i class="fas fa-trash-alt"></i></button>
+                        </td>
                     </tr>
                     `;
                 }).join("");
@@ -1426,16 +1456,32 @@
             
             let dateVal = document.getElementById("mDate").value; 
             let targetCycleMonth = getCycleMonthForDate(dateVal, state.startDay);
+            let catVal = document.getElementById("mCat").value;
+            let descVal = document.getElementById("mDesc").value.trim();
 
-            state.expenses.unshift({
-                id: "man_" + Date.now(),
-                dateStr: targetCycleMonth, 
-                exactDate: dateVal,
-                cat: document.getElementById("mCat").value,
-                desc: document.getElementById("mDesc").value,
-                amount: amt,
-                fromApplePay: false
-            });
+            if (editingExpenseId) {
+                const idx = state.expenses.findIndex(e => String(e.id) === editingExpenseId);
+                if (idx !== -1) {
+                    state.expenses[idx] = {
+                        ...state.expenses[idx],
+                        dateStr: targetCycleMonth,
+                        exactDate: dateVal,
+                        cat: catVal,
+                        desc: descVal,
+                        amount: amt
+                    };
+                }
+            } else {
+                state.expenses.unshift({
+                    id: "man_" + Date.now(),
+                    dateStr: targetCycleMonth, 
+                    exactDate: dateVal,
+                    cat: catVal,
+                    desc: descVal,
+                    amount: amt,
+                    fromApplePay: false
+                });
+            }
             
             state.expenses.sort((a, b) => (b.exactDate || "").localeCompare(a.exactDate || ""));
 
