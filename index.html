@@ -202,30 +202,48 @@
         }
         @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .modal-header {
-            padding: 15px 18px; background: var(--header-grad); color: #fff;
+            padding: 14px 18px; background: var(--header-grad); color: #fff;
             font-weight: 800; font-size: 16px; display: flex; justify-content: space-between; align-items: center;
+            gap: 10px;
         }
-        .close-btn { background: none; border: none; color: #fff; font-size: 26px; line-height: 1; cursor: pointer; }
-        .modal-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 11px; }
-        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .modal-header-title {
+            display: flex; align-items: center; gap: 8px; min-width: 0;
+        }
+        .close-btn {
+            background: rgba(255,255,255,0.12); border: none; color: #fff;
+            width: 32px; height: 32px; border-radius: 50%; font-size: 22px; line-height: 1;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; flex-shrink: 0;
+        }
+        .modal-body {
+            padding: 14px 16px; display: flex; flex-direction: column; gap: 12px;
+        }
+        .form-group {
+            display: flex; flex-direction: column; width: 100%; min-width: 0;
+        }
         .form-group label {
             display: block; font-size: 11px; font-weight: 800; color: var(--blue-dark);
-            text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.4px;
+            text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.4px;
         }
         .form-control {
-            width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 10px;
+            display: block; width: 100%; max-width: 100%; min-width: 0; height: 42px;
+            padding: 0 12px; border: 1px solid #cbd5e1; border-radius: 10px;
             font-size: 14px; font-weight: 700; color: var(--text-main); background: #fff; outline: none;
         }
         .form-control:focus { border-color: var(--primary); }
         .amount-display {
-            width: 100%; padding: 10px 14px; font-size: 28px; font-weight: 900; text-align: right;
+            display: block; width: 100%; max-width: 100%; height: 52px;
+            padding: 0 14px; font-size: 28px; font-weight: 900; text-align: right;
             color: var(--primary); background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 12px; outline: none;
         }
-        .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+        .numpad-grid {
+            display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; width: 100%;
+        }
         .numpad-btn {
             background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 10px;
             font-size: 20px; font-weight: 800; color: var(--blue-dark);
-            padding: 11px 0; cursor: pointer; touch-action: manipulation;
+            height: 46px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; touch-action: manipulation;
         }
         .numpad-btn:active { background: #e2e8f0; transform: scale(0.98); }
         .numpad-btn.btn-orange { color: var(--primary); }
@@ -234,7 +252,9 @@
             border-top: 1px solid #f1f5f9;
         }
         .btn-modal {
-            padding: 13px; border-radius: 12px; border: none; font-size: 14px; font-weight: 900; cursor: pointer;
+            height: 46px; padding: 0 12px; border-radius: 12px; border: none;
+            font-size: 14px; font-weight: 900; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
         }
         .btn-cancel { background: #e2e8f0; color: var(--text-main); }
         .btn-submit { background: var(--primary); color: #fff; }
@@ -355,7 +375,7 @@
     <div class="modal-overlay" id="accountModal" onclick="if(event.target===this) closeAccountModal()">
         <div class="modal-sheet">
             <div class="modal-header">
-                <span><i class="fas fa-folder-plus" style="margin-right:8px;"></i> Comptes & Fichiers Drive</span>
+                <div class="modal-header-title"><i class="fas fa-folder-plus"></i><span>Comptes & Drive</span></div>
                 <button type="button" class="close-btn" onclick="closeAccountModal()">&times;</button>
             </div>
             <div class="modal-body">
@@ -363,9 +383,9 @@
                     <label>Comptes enregistrés</label>
                     <div id="accountsList"></div>
                 </div>
-                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 4px 0;">
+                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 2px 0;">
                 <form onsubmit="event.preventDefault(); addNewAccount();">
-                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
                         <div class="form-group">
                             <label>Nom du nouveau compte</label>
                             <input type="text" id="newAccName" class="form-control" required placeholder="Ex: Compte Joint, Perso 2...">
@@ -387,26 +407,27 @@
     <div class="modal-overlay" id="modal" onclick="if(event.target===this) closeModal()">
         <div class="modal-sheet">
             <div class="modal-header">
-                <span><i class="fas fa-cart-plus" style="margin-right:8px;"></i> Nouvelle dépense</span>
+                <div class="modal-header-title"><i class="fas fa-cart-plus"></i><span>Nouvelle dépense</span></div>
                 <button type="button" class="close-btn" onclick="closeModal()">&times;</button>
             </div>
             <form onsubmit="event.preventDefault(); saveExpense();">
                 <div class="modal-body">
-                    <div class="form-row-2">
-                        <div class="form-group">
-                            <label>Date</label>
-                            <input type="date" id="mDate" class="form-control" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Catégorie</label>
-                            <select id="mCat" class="form-control" required></select>
-                        </div>
+                    <div class="form-group">
+                        <label>Date de la dépense</label>
+                        <input type="date" id="mDate" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Catégorie</label>
+                        <select id="mCat" class="form-control" required></select>
                     </div>
                     <div class="form-group">
                         <label>Description / Lieu</label>
                         <input type="text" id="mDesc" class="form-control" autocomplete="off" required placeholder="Ex: Courses, Essence, Resto...">
                     </div>
-                    <input type="text" id="mAmount" class="amount-display" placeholder="0.00" readonly>
+                    <div class="form-group">
+                        <label>Montant (€)</label>
+                        <input type="text" id="mAmount" class="amount-display" placeholder="0.00" readonly>
+                    </div>
                     <div class="numpad-grid">
                         <button type="button" class="numpad-btn" onclick="addNum('1')">1</button>
                         <button type="button" class="numpad-btn" onclick="addNum('2')">2</button>
@@ -419,7 +440,7 @@
                         <button type="button" class="numpad-btn" onclick="addNum('9')">9</button>
                         <button type="button" class="numpad-btn btn-orange" onclick="addNum('.')">.</button>
                         <button type="button" class="numpad-btn" onclick="addNum('0')">0</button>
-                        <button type="button" class="numpad-btn btn-orange" onclick="delNum()"><i class="fas fa-backspace"></i></button>
+                        <button type="button" class="numpad-btn btn-orange" onclick="delNum()" aria-label="Effacer">⌫</button>
                     </div>
                 </div>
                 <div class="modal-footer">
