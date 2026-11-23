@@ -41,17 +41,49 @@
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
         }
 
-        /* LIGNE 1 : TITRE + NOUVEAU DOSSIER + RAFRAÎCHISSEMENT + SYNCHRO GOOGLE */
+        /* LIGNE 1 : TITRE + DÉBUT CYCLE + NOUVEAU DOSSIER + RAFRAÎCHISSEMENT + SYNCHRO GOOGLE */
         .header-row-1 {
             display: flex; justify-content: space-between; align-items: center;
-            gap: 8px; margin-bottom: 10px;
+            gap: 6px; margin-bottom: 10px;
         }
         .app-title {
-            font-size: 16px; font-weight: 900; display: flex; align-items: center; gap: 7px;
+            font-size: 15px; font-weight: 900; display: flex; align-items: center; gap: 6px;
             min-width: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .header-row1-right {
-            display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+            display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+        }
+        .cycle-day-box {
+            background: rgba(255,255,255,0.14);
+            border: 1px solid rgba(255,255,255,0.24);
+            color: #fff;
+            height: 30px;
+            padding: 0 6px;
+            border-radius: 9px;
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 3px; flex-shrink: 0;
+        }
+        .cycle-day-box i {
+            font-size: 10px;
+            color: rgba(255,255,255,0.8);
+        }
+        .cycle-day-input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 900;
+            width: 24px;
+            text-align: center;
+            outline: none;
+            padding: 0;
+            -moz-appearance: textfield;
+        }
+        .cycle-day-input::-webkit-outer-spin-button,
+        .cycle-day-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
         .btn-mini-header {
             background: rgba(255,255,255,0.14);
@@ -65,7 +97,7 @@
         }
         .btn-mini-header:active { transform: scale(0.95); background: rgba(255,255,255,0.24); }
         .cloud-badge {
-            font-size: 10px; font-weight: 800; height: 30px; padding: 0 8px; border-radius: 9px;
+            font-size: 10px; font-weight: 800; height: 30px; padding: 0 7px; border-radius: 9px;
             background: rgba(255,255,255,0.12); color: #cbd5e1;
             display: inline-flex; align-items: center; gap: 4px;
             white-space: nowrap; flex-shrink: 0;
@@ -183,7 +215,7 @@
         .bg-green { background: #047857; }
         .bg-red { background: #b91c1c; }
         .sum-left { display: flex; align-items: center; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .sum-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .sum-right { display: flex; align-items: center; gap: 18px; flex-shrink: 0; }
         .btn-add-fixed {
             width: 28px; height: 28px; border-radius: 50%;
             border: 1.5px solid rgba(255,255,255,0.45);
@@ -193,7 +225,7 @@
             cursor: pointer; flex-shrink: 0;
         }
         .btn-add-fixed:active { transform: scale(0.92); background: rgba(255,255,255,0.3); }
-        .chevron { font-size: 12px; transition: transform 0.2s; opacity: 0.85; }
+        .chevron { font-size: 12px; transition: transform 0.2s; opacity: 0.85; margin-right: 2px; }
         details[open] .chevron { transform: rotate(180deg); }
 
         .fixed-row {
@@ -337,10 +369,14 @@
 
     <!-- EN-TÊTE + 4 KPI -->
     <header>
-        <!-- LIGNE 1 : TITRE + NOUVEAU DOSSIER + RAFRAÎCHISSEMENT + SYNCHRO GOOGLE -->
+        <!-- LIGNE 1 : TITRE + DÉBUT CYCLE + NOUVEAU DOSSIER + RAFRAÎCHISSEMENT + SYNCHRO GOOGLE -->
         <div class="header-row-1">
             <div class="app-title" id="headerAccountName"><i class="fas fa-wallet" style="color: var(--primary);"></i> Mes Comptes</div>
             <div class="header-row1-right">
+                <div class="cycle-day-box" title="Jour de début de cycle (1 à 31)">
+                    <i class="fas fa-calendar-day"></i>
+                    <input type="number" id="startDayConfig" class="cycle-day-input" min="1" max="31" aria-label="Jour de début de mois">
+                </div>
                 <button type="button" class="btn-mini-header" onclick="openAccountModal()" title="Nouveau dossier / Fichier Drive" aria-label="Nouveau dossier">
                     <i class="fas fa-folder-plus"></i>
                 </button>
@@ -351,7 +387,7 @@
             </div>
         </div>
 
-        <!-- LIGNE 2 : CALENDRIER + BOUTON DÉPENSE -->
+        <!-- LIGNE 2 : CALENDRIER + BOUTON DÉPENSE BIEN SÉPARÉS -->
         <div class="header-row-2">
             <input type="month" id="datePicker" class="month-select" aria-label="Période">
             <button type="button" class="btn-toolbar-primary" onclick="openModal()">
@@ -384,7 +420,7 @@
         <div class="section-title"><span>Budget par semaine</span></div>
         <div id="weeksList"></div>
 
-        <!-- 2. SOMMES ENTRÉES ET SORTIES (SANS MONTANT DANS L'EN-TÊTE) -->
+        <!-- 2. SOMMES ENTRÉES ET SORTIES (BOUTON + DÉCALÉ DE LA FLÈCHE) -->
         <div class="section-title"><span>Entrées & Charges fixes</span></div>
         
         <details class="fixed-panel" id="panelInMobile">
@@ -702,7 +738,10 @@
                 if (data.status === "error") throw new Error(data.message);
 
                 if (data.config && Object.keys(data.config).length > 0) {
-                    if (data.config.startDay) state.startDay = parseInt(data.config.startDay) || 25;
+                    if (data.config.startDay) {
+                        state.startDay = parseInt(data.config.startDay) || 25;
+                        document.getElementById("startDayConfig").value = state.startDay;
+                    }
                     state.pointage = {};
                     Object.keys(data.config).forEach(k => {
                         if (k.startsWith("pointage_")) {
@@ -711,7 +750,10 @@
                         }
                     });
                 } else if (legacyData) {
-                    if (legacyData.startDay) state.startDay = legacyData.startDay;
+                    if (legacyData.startDay) {
+                        state.startDay = legacyData.startDay;
+                        document.getElementById("startDayConfig").value = state.startDay;
+                    }
                     if (legacyData.pointage) state.pointage = legacyData.pointage;
                 }
 
@@ -755,7 +797,10 @@
                     if (legacyData.out) state.out = legacyData.out;
                     if (legacyData.expenses) state.expenses = legacyData.expenses;
                     if (legacyData.pointage) state.pointage = legacyData.pointage;
-                    if (legacyData.startDay) state.startDay = legacyData.startDay;
+                    if (legacyData.startDay) {
+                        state.startDay = legacyData.startDay;
+                        document.getElementById("startDayConfig").value = state.startDay;
+                    }
                     renderAll();
                 }
                 setCloudStatus("err", "Hors-ligne");
@@ -1104,6 +1149,23 @@
             picker.addEventListener("change", (e) => {
                 state.currentDate = e.target.value;
                 renderAll();
+            });
+
+            const startDayInput = document.getElementById("startDayConfig");
+            startDayInput.value = state.startDay;
+            startDayInput.addEventListener("change", (e) => {
+                const v = parseInt(e.target.value, 10);
+                if (v >= 1 && v <= 31) {
+                    state.startDay = v;
+                    state.expenses.forEach(exp => {
+                        exp.dateStr = getCycleMonthForDate(exp.exactDate, state.startDay);
+                    });
+                    saveData();
+                    renderAll();
+                } else {
+                    e.target.value = state.startDay;
+                    alert("Veuillez choisir un jour entre 1 et 31.");
+                }
             });
 
             const catSel = document.getElementById("mCat");
