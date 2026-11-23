@@ -480,9 +480,9 @@
             <div id="listOutMobile"></div>
         </details>
 
-        <!-- 3. TABLEAU DES DÉPENSES EN FIN DE PAGE (MODIFICATION & SUPPRESSION) -->
+        <!-- 3. TABLEAU DES DÉPENSES EN FIN DE PAGE -->
         <div class="section-title">
-            <span>Dépenses du cycle</span>
+            <span>Dépenses du mois</span>
             <span id="expCount" style="color: var(--primary);">0</span>
         </div>
         <div class="table-card">
@@ -1282,7 +1282,7 @@
 
             document.getElementById("expCount").innerText = currentExpenses.length + " opération(s)";
             if (currentExpenses.length === 0) {
-                document.getElementById("tableExpenses").innerHTML = `<tr><td colspan="4" style="text-align:center; padding:32px; color:var(--text-muted);">Aucune dépense sur ce cycle.</td></tr>`;
+                document.getElementById("tableExpenses").innerHTML = `<tr><td colspan="4" style="text-align:center; padding:32px; color:var(--text-muted);">Aucune dépense sur ce mois.</td></tr>`;
             } else {
                 document.getElementById("tableExpenses").innerHTML = currentExpenses.map(e => {
                     const dAff = e.exactDate ? e.exactDate.split('-').reverse().slice(0,2).join('/') : '';
