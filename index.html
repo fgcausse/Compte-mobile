@@ -41,24 +41,28 @@
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
         }
 
-        /* LIGNE 1 : TITRE + DÉBUT CYCLE (POPUP) + NOUVEAU DOSSIER + RAFRAÎCHISSEMENT + SYNCHRO GOOGLE */
+        /* LIGNE 1 : TITRE + BOUTON BUREAU + DÉBUT CYCLE + NOUVEAU DOSSIER + RAFRAÎCHISSEMENT + SYNCHRO GOOGLE */
         .header-row-1 {
             display: flex; justify-content: space-between; align-items: center;
             gap: 6px; margin-bottom: 10px;
         }
+        .header-title-group {
+            display: flex; align-items: center; gap: 6px;
+            min-width: 0; flex: 1;
+        }
         .app-title {
             font-size: 15px; font-weight: 900; display: flex; align-items: center; gap: 6px;
-            min-width: 0; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .header-row1-right {
-            display: flex; align-items: center; gap: 5px; flex-shrink: 0;
+            display: flex; align-items: center; gap: 4px; flex-shrink: 0;
         }
         .btn-cycle-trigger {
             background: rgba(255,255,255,0.14);
             border: 1px solid rgba(255,255,255,0.24);
             color: #fff;
             height: 30px;
-            padding: 0 8px;
+            padding: 0 7px;
             border-radius: 9px;
             display: inline-flex; align-items: center; justify-content: center;
             gap: 4px; cursor: pointer; font-family: inherit;
@@ -404,9 +408,14 @@
 
     <!-- EN-TÊTE + 4 KPI -->
     <header>
-        <!-- LIGNE 1 : TITRE + BOUTON POPUP DÉBUT MOIS + NOUVEAU DOSSIER + RAFRAÎCHISSEMENT + SYNCHRO GOOGLE -->
+        <!-- LIGNE 1 : TITRE + BOUTON BUREAU + DÉBUT MOIS + NOUVEAU DOSSIER + RAFRAÎCHISSEMENT + SYNCHRO GOOGLE -->
         <div class="header-row-1">
-            <div class="app-title" id="headerAccountName"><i class="fas fa-wallet" style="color: var(--primary);"></i> Mes Comptes</div>
+            <div class="header-title-group">
+                <div class="app-title" id="headerAccountName"><i class="fas fa-wallet" style="color: var(--primary);"></i> Mes Comptes</div>
+                <button type="button" class="btn-mini-header" onclick="window.location.href='bureau.html'" title="Passer à la version Bureau" aria-label="Version Bureau">
+                    <i class="fas fa-desktop"></i>
+                </button>
+            </div>
             <div class="header-row1-right">
                 <button type="button" class="btn-cycle-trigger" onclick="openCycleDayModal()" title="Choisir le jour de début de mois">
                     <i class="fas fa-calendar-day"></i>
