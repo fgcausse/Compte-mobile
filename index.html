@@ -170,36 +170,47 @@
         .w-sub { font-size: 11px; color: var(--text-muted); font-weight: 700; margin-top: 3px; }
         .w-reste { font-size: 16px; font-weight: 900; flex-shrink: 0; margin-left: 8px; }
 
-        /* 2. SOMMES ENTRÉES & SORTIES FIXES (ACCORDÉON DÉPLIABLE) */
+        /* 2. SOMMES ENTRÉES & SORTIES FIXES (ACCORDÉON DÉPLIABLE + AJOUT/SUPPRESSION) */
         details.fixed-panel {
             background: var(--bg-card); border-radius: var(--radius); overflow: hidden;
             box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 10px;
         }
         details.fixed-panel summary {
-            list-style: none; padding: 14px 16px; color: #fff; font-weight: 800; font-size: 14px;
-            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+            list-style: none; padding: 12px 14px; color: #fff; font-weight: 800; font-size: 14px;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer; gap: 8px;
         }
         details.fixed-panel summary::-webkit-details-marker { display: none; }
         .bg-green { background: #047857; }
         .bg-red { background: #b91c1c; }
-        .sum-right { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 900; }
+        .sum-left { display: flex; align-items: center; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sum-right { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 900; flex-shrink: 0; }
+        .btn-add-fixed {
+            width: 28px; height: 28px; border-radius: 50%;
+            border: 1.5px solid rgba(255,255,255,0.45);
+            background: rgba(255,255,255,0.18);
+            color: #fff; font-size: 16px; font-weight: 900; line-height: 1;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer; flex-shrink: 0;
+        }
+        .btn-add-fixed:active { transform: scale(0.92); background: rgba(255,255,255,0.3); }
         .chevron { font-size: 12px; transition: transform 0.2s; opacity: 0.85; }
         details[open] .chevron { transform: rotate(180deg); }
 
         .fixed-row {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 11px 16px; border-bottom: 1px solid #f1f5f9; font-size: 13px;
+            padding: 10px 12px 10px 14px; border-bottom: 1px solid #f1f5f9; font-size: 13px; gap: 6px;
         }
         .fixed-row:last-child { border-bottom: none; }
         .fixed-row.checked { opacity: 0.55; background: #f8fafc; }
         .fixed-row.checked .f-name { text-decoration: line-through; }
-        .f-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+        .f-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
         .f-day {
             background: #f1f5f9; color: var(--text-muted); font-size: 11px; font-weight: 800;
             padding: 2px 6px; border-radius: 6px; flex-shrink: 0;
         }
         .f-name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .f-amt { font-weight: 900; flex-shrink: 0; margin-left: 8px; }
+        .f-right { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+        .f-amt { font-weight: 900; white-space: nowrap; }
 
         /* 3. TABLEAU DES DÉPENSES EN FIN DE PAGE */
         .table-card {
@@ -223,11 +234,11 @@
         }
         .btn-del-exp {
             background: none; border: none; color: #94a3b8; cursor: pointer;
-            font-size: 15px; padding: 6px 8px; border-radius: 8px;
+            font-size: 14px; padding: 6px 7px; border-radius: 8px;
         }
         .btn-del-exp:active { color: var(--red); background: #fef2f2; }
 
-        /* MODALES (DÉPENSE & NOUVEAU DOSSIER) */
+        /* MODALES (DÉPENSE, FIXES & NOUVEAU DOSSIER) */
         .modal-overlay {
             display: none; position: fixed; inset: 0; z-index: 100;
             background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(4px);
@@ -247,6 +258,8 @@
             font-weight: 800; font-size: 16px; display: flex; justify-content: space-between; align-items: center;
             gap: 10px;
         }
+        .modal-header.bg-green-grad { background: linear-gradient(135deg, #064e3b, #047857); }
+        .modal-header.bg-red-grad { background: linear-gradient(135deg, #7f1d1d, #b91c1c); }
         .modal-header-title {
             display: flex; align-items: center; gap: 8px; min-width: 0;
         }
@@ -299,6 +312,8 @@
         }
         .btn-cancel { background: #e2e8f0; color: var(--text-main); }
         .btn-submit { background: var(--primary); color: #fff; }
+        .btn-submit-green { background: #047857; color: #fff; }
+        .btn-submit-red { background: #b91c1c; color: #fff; }
 
         /* LISTE DES COMPTES DANS LA MODALE */
         .account-item {
@@ -369,25 +384,27 @@
         <div class="section-title"><span>Budget par semaine</span></div>
         <div id="weeksList"></div>
 
-        <!-- 2. SOMMES ENTRÉES ET SORTIES (LECTURE SEULE) -->
+        <!-- 2. SOMMES ENTRÉES ET SORTIES (AJOUT & SUPPRESSION POSSIBLES) -->
         <div class="section-title"><span>Entrées & Charges fixes</span></div>
         
-        <details class="fixed-panel">
+        <details class="fixed-panel" id="panelInMobile">
             <summary class="bg-green">
-                <span><i class="fas fa-arrow-down" style="margin-right:6px;"></i> Salaires & Rentrées</span>
+                <span class="sum-left"><i class="fas fa-arrow-down"></i> Salaires & Rentrées</span>
                 <div class="sum-right">
                     <span id="totIn">0,00 €</span>
+                    <button type="button" class="btn-add-fixed" onclick="event.preventDefault(); event.stopPropagation(); openFixedModal('in');" title="Ajouter une entrée" aria-label="Ajouter une entrée">+</button>
                     <i class="fas fa-chevron-down chevron"></i>
                 </div>
             </summary>
             <div id="listInMobile"></div>
         </details>
 
-        <details class="fixed-panel">
+        <details class="fixed-panel" id="panelOutMobile">
             <summary class="bg-red">
-                <span><i class="fas fa-arrow-up" style="margin-right:6px;"></i> Charges Fixes</span>
+                <span class="sum-left"><i class="fas fa-arrow-up"></i> Charges Fixes</span>
                 <div class="sum-right">
                     <span id="totOut">0,00 €</span>
+                    <button type="button" class="btn-add-fixed" onclick="event.preventDefault(); event.stopPropagation(); openFixedModal('out');" title="Ajouter une charge fixe" aria-label="Ajouter une charge fixe">+</button>
                     <i class="fas fa-chevron-down chevron"></i>
                 </div>
             </summary>
@@ -411,6 +428,36 @@
                 </thead>
                 <tbody id="tableExpenses"></tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- MODALE AJOUT ENTRÉE OU CHARGE FIXE -->
+    <div class="modal-overlay" id="fixedModal" onclick="if(event.target===this) closeFixedModal()">
+        <div class="modal-sheet">
+            <div class="modal-header" id="fixedModalHeader">
+                <div class="modal-header-title" id="fixedModalTitle"><i class="fas fa-plus-circle"></i><span>Nouvelle ligne</span></div>
+                <button type="button" class="close-btn" onclick="closeFixedModal()">&times;</button>
+            </div>
+            <form onsubmit="event.preventDefault(); saveFixedItem();">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Jour du mois (1 à 31)</label>
+                        <input type="number" id="fDay" class="form-control" min="1" max="31" required>
+                    </div>
+                    <div class="form-group">
+                        <label id="fNameLabel">Source / Libellé</label>
+                        <input type="text" id="fName" class="form-control" autocomplete="off" required placeholder="Ex: Salaire, Loyer, EDF...">
+                    </div>
+                    <div class="form-group">
+                        <label>Montant (€)</label>
+                        <input type="number" step="0.01" min="0.01" id="fAmount" class="form-control" required placeholder="0.00">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal btn-cancel" onclick="closeFixedModal()">Annuler</button>
+                    <button type="submit" class="btn-modal btn-submit" id="fixedSubmitBtn"><i class="fas fa-check"></i> Enregistrer</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -496,6 +543,7 @@
 
     <script>
         const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyr1TQ3Q3RBB_FAYSOk6kSVxweAOuAk06NdqjKUrxzXPqF6Go9kNViA6mezbtDlOwuW9g/exec";
+        const genId = (prefix) => prefix + '_' + Date.now() + Math.random().toString(36).substr(2, 5);
 
         let accounts = JSON.parse(localStorage.getItem("comptes_accounts_list") || "null") || [
             { id: "default", name: "Mes Comptes", url: DEFAULT_SCRIPT_URL, storageKey: "comptes_pc_v26_final" }
@@ -611,6 +659,7 @@
         };
 
         let currentAmountStr = "";
+        let currentFixedType = "out";
         let saveTimeout = null;
 
         function setCloudStatus(type, text) {
@@ -765,6 +814,82 @@
             }
         }
 
+        /* GESTION AJOUT / SUPPRESSION ENTRÉES & CHARGES FIXES */
+        function openFixedModal(type) {
+            currentFixedType = type;
+            const header = document.getElementById("fixedModalHeader");
+            const title = document.getElementById("fixedModalTitle");
+            const label = document.getElementById("fNameLabel");
+            const btn = document.getElementById("fixedSubmitBtn");
+
+            if (type === "in") {
+                header.className = "modal-header bg-green-grad";
+                title.innerHTML = `<i class="fas fa-arrow-down"></i><span>Nouvelle entrée</span>`;
+                label.innerText = "Source / Employeur";
+                document.getElementById("fDay").value = state.startDay || 25;
+                document.getElementById("fName").placeholder = "Ex: Salaire, CAF, Prime...";
+                btn.className = "btn-modal btn-submit-green";
+            } else {
+                header.className = "modal-header bg-red-grad";
+                title.innerHTML = `<i class="fas fa-arrow-up"></i><span>Nouvelle charge fixe</span>`;
+                label.innerText = "Description de la charge";
+                document.getElementById("fDay").value = 5;
+                document.getElementById("fName").placeholder = "Ex: Loyer, EDF, Assurance...";
+                btn.className = "btn-modal btn-submit-red";
+            }
+
+            document.getElementById("fName").value = "";
+            document.getElementById("fAmount").value = "";
+            document.getElementById("fixedModal").classList.add("open");
+        }
+
+        function closeFixedModal() {
+            document.getElementById("fixedModal").classList.remove("open");
+        }
+
+        function saveFixedItem() {
+            const jour = parseInt(document.getElementById("fDay").value, 10);
+            const nom = document.getElementById("fName").value.trim().toUpperCase();
+            const montant = parseFloat(String(document.getElementById("fAmount").value).replace(',', '.'));
+
+            if (isNaN(jour) || jour < 1 || jour > 31) {
+                alert("Le jour doit être compris entre 1 et 31.");
+                return;
+            }
+            if (!nom) return;
+            if (isNaN(montant) || montant <= 0) {
+                alert("Le montant doit être supérieur à 0.");
+                return;
+            }
+
+            state[currentFixedType].push({
+                id: genId(currentFixedType),
+                jour: jour,
+                nom: nom,
+                montant: montant
+            });
+
+            // Déplie automatiquement l'accordéon concerné pour visualiser l'ajout
+            const panel = document.getElementById(currentFixedType === "in" ? "panelInMobile" : "panelOutMobile");
+            if (panel) panel.open = true;
+
+            saveData();
+            closeFixedModal();
+            renderAll();
+        }
+
+        function deleteFixedItem(type, idx) {
+            const item = state[type][idx];
+            if (!item) return;
+            const label = item.nom || "cette ligne";
+            if (confirm(`Supprimer "${label}" ?`)) {
+                state[type].splice(idx, 1);
+                saveData();
+                renderAll();
+            }
+        }
+
+        /* PAVÉ NUMÉRIQUE & MODALE DÉPENSE */
         function addNum(val) {
             if (val === '.' && currentAmountStr.includes('.')) return;
             if (currentAmountStr.includes('.') && currentAmountStr.split('.')[1].length >= 2) return;
@@ -925,7 +1050,7 @@
             kpiFinal.className = "kpi-val " + (remainingMois < 0 ? "val-red" : "val-green");
 
             const monthPointage = state.pointage[state.currentDate] || [];
-            const buildFixedRow = (item, type) => {
+            const buildFixedRow = (item, idx, type) => {
                 const isChecked = monthPointage.includes(item.id);
                 return `
                 <div class="fixed-row ${isChecked ? 'checked' : ''}">
@@ -933,13 +1058,24 @@
                         <span class="f-day">J${item.jour}</span>
                         <span class="f-name">${item.nom || 'Sans nom'}</span>
                     </div>
-                    <span class="f-amt ${type === 'in' ? 'text-green' : 'text-red'}">
-                        ${type === 'in' ? '+' : '-'}${fmt(item.montant)}
-                    </span>
+                    <div class="f-right">
+                        <span class="f-amt ${type === 'in' ? 'text-green' : 'text-red'}">
+                            ${type === 'in' ? '+' : '-'}${fmt(item.montant)}
+                        </span>
+                        <button type="button" class="btn-del-exp" onclick="deleteFixedItem('${type}', ${idx})" title="Supprimer">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 </div>`;
             };
-            document.getElementById("listInMobile").innerHTML = state.in.map(x => buildFixedRow(x, 'in')).join("");
-            document.getElementById("listOutMobile").innerHTML = state.out.map(x => buildFixedRow(x, 'out')).join("");
+
+            document.getElementById("listInMobile").innerHTML = state.in.length === 0
+                ? `<div style="padding:18px; text-align:center; font-size:12px; color:var(--text-muted);">Aucune entrée enregistrée.</div>`
+                : state.in.map((x, i) => buildFixedRow(x, i, 'in')).join("");
+
+            document.getElementById("listOutMobile").innerHTML = state.out.length === 0
+                ? `<div style="padding:18px; text-align:center; font-size:12px; color:var(--text-muted);">Aucune charge fixe enregistrée.</div>`
+                : state.out.map((x, i) => buildFixedRow(x, i, 'out')).join("");
 
             document.getElementById("expCount").innerText = currentExpenses.length + " opération(s)";
             if (currentExpenses.length === 0) {
