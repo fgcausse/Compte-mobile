@@ -183,7 +183,7 @@
         .bg-green { background: #047857; }
         .bg-red { background: #b91c1c; }
         .sum-left { display: flex; align-items: center; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .sum-right { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 900; flex-shrink: 0; }
+        .sum-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
         .btn-add-fixed {
             width: 28px; height: 28px; border-radius: 50%;
             border: 1.5px solid rgba(255,255,255,0.45);
@@ -384,14 +384,13 @@
         <div class="section-title"><span>Budget par semaine</span></div>
         <div id="weeksList"></div>
 
-        <!-- 2. SOMMES ENTRÉES ET SORTIES (AJOUT & SUPPRESSION POSSIBLES) -->
+        <!-- 2. SOMMES ENTRÉES ET SORTIES (SANS MONTANT DANS L'EN-TÊTE) -->
         <div class="section-title"><span>Entrées & Charges fixes</span></div>
         
         <details class="fixed-panel" id="panelInMobile">
             <summary class="bg-green">
                 <span class="sum-left"><i class="fas fa-arrow-down"></i> Salaires & Rentrées</span>
                 <div class="sum-right">
-                    <span id="totIn">0,00 €</span>
                     <button type="button" class="btn-add-fixed" onclick="event.preventDefault(); event.stopPropagation(); openFixedModal('in');" title="Ajouter une entrée" aria-label="Ajouter une entrée">+</button>
                     <i class="fas fa-chevron-down chevron"></i>
                 </div>
@@ -403,7 +402,6 @@
             <summary class="bg-red">
                 <span class="sum-left"><i class="fas fa-arrow-up"></i> Charges Fixes</span>
                 <div class="sum-right">
-                    <span id="totOut">0,00 €</span>
                     <button type="button" class="btn-add-fixed" onclick="event.preventDefault(); event.stopPropagation(); openFixedModal('out');" title="Ajouter une charge fixe" aria-label="Ajouter une charge fixe">+</button>
                     <i class="fas fa-chevron-down chevron"></i>
                 </div>
@@ -869,7 +867,6 @@
                 montant: montant
             });
 
-            // Déplie automatiquement l'accordéon concerné pour visualiser l'ajout
             const panel = document.getElementById(currentFixedType === "in" ? "panelInMobile" : "panelOutMobile");
             if (panel) panel.open = true;
 
@@ -1015,8 +1012,6 @@
             document.getElementById("kpiIn").innerText = fmt(totIn);
             document.getElementById("kpiOut").innerText = "-" + fmt(totOut);
             document.getElementById("kpiBudget").innerText = fmt(budget);
-            document.getElementById("totIn").innerText = fmt(totIn);
-            document.getElementById("totOut").innerText = "-" + fmt(totOut);
 
             let cycleDates = generateCycleDates(state.currentDate, state.startDay);
             let dynamicWeeks = generateWeeksFromCycle(cycleDates);
