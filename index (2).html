@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- Configuration Mode Application Plein Écran iOS & Android -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mes Comptes">
+    <meta name="theme-color" content="#0f172a">
+
+    <!-- Icônes officielles & Manifeste PWA -->
+    <link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="manifest" href="manifest.json">
+
+    <title>Mes Comptes</title>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0f172a;
+        }
+        /* Remplit la zone sécurisée en haut de l'iPhone (encoche / Dynamic Island) */
+        .safe-top-bar {
+            width: 100%;
+            height: env(safe-area-inset-top);
+            background: linear-gradient(135deg, #0f172a, #1e3a8a);
+        }
+        iframe {
+            display: block;
+            width: 100%;
+            height: calc(100% - env(safe-area-inset-top));
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="safe-top-bar"></div>
+    <iframe 
+        src="https://script.google.com/macros/s/VOTRE_URL_APPS_SCRIPT_EXEC/exec" 
+        allow="clipboard-read; clipboard-write"
+        allowfullscreen>
+    </iframe>
+</body>
+</html>
